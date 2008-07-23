@@ -5,7 +5,7 @@
 <meta content="Apache Forrest" name="Generator">
 <meta name="Forrest-version" content="0.8">
 <meta name="Forrest-skin-name" content="pelt">
-<title>Environments</title>
+<title>Issue Tracking</title>
 <link type="text/css" href="skin/basic.css" rel="stylesheet">
 <link media="screen" type="text/css" href="skin/screen.css" rel="stylesheet">
 <link media="print" type="text/css" href="skin/print.css" rel="stylesheet">
@@ -69,9 +69,6 @@ urchinTracker();
 <li>
 <a class="unselected" href="http://wiki.apache.org/hama">Wiki</a>
 </li>
-<li>
-<a class="unselected" href="http://incubator.apache.org/projects/hama.html">Incubation Status</a>
-</li>
 </ul>
 <!--+
     |end Tabs
@@ -110,14 +107,17 @@ document.write("Last Published: " + document.lastModified);
 <div class="menuitem">
 <a href="index.html">Overview</a>
 </div>
+</div>
+<div onclick="SwitchMenu('menu_selected_1.2', 'skin/')" id="menu_selected_1.2Title" class="menutitle" style="background-image: url('skin/images/chapter_open.gif');">Resources</div>
+<div id="menu_selected_1.2" class="selectedmenuitemgroup" style="display: block;">
+<div class="menuitem">
+<a href="developers.html">Developers</a>
+</div>
+<div class="menupage">
+<div class="menupagetitle">Issue Tracking</div>
+</div>
 <div class="menuitem">
 <a href="mailing_lists.html">Mailing Lists</a>
-</div>
-</div>
-<div onclick="SwitchMenu('menu_selected_1.2', 'skin/')" id="menu_selected_1.2Title" class="menutitle" style="background-image: url('skin/images/chapter_open.gif');">Developers Centre</div>
-<div id="menu_selected_1.2" class="selectedmenuitemgroup" style="display: block;">
-<div class="menupage">
-<div class="menupagetitle">Environments</div>
 </div>
 </div>
 <div id="credit"></div>
@@ -136,58 +136,26 @@ document.write("Last Published: " + document.lastModified);
     +-->
 <div id="content">
 <div title="Portable Document Format" class="pdflink">
-<a class="dida" href="environments.pdf"><img alt="PDF -icon" src="skin/images/pdfdoc.gif" class="skin"><br>
+<a class="dida" href="issue_tracking.pdf"><img alt="PDF -icon" src="skin/images/pdfdoc.gif" class="skin"><br>
         PDF</a>
 </div>
-<h1>Environments</h1>
-<div id="minitoc-area">
-<ul class="minitoc">
-<li>
-<a href="#Code+Style">Code Style</a>
-</li>
-<li>
-<a href="#Subversion+Access">Subversion Access</a>
-</li>
+<h1>Issue Tracking</h1>
+    
+<p>
+    Hama tracks both bugs and enhancement requests 
+    <a href="https://issues.apache.org/jira/browse/HAMA">here</a> using Apache JIRA. 
+    We welcome input, however, before filing a request, 
+    please make sure you do the following: 
+    </p>
+    
+<ul>
+      
+<li>Search the JIRA database.</li>
+      
+<li>Check the user <a href="./mailing_lists.html">mailing list</a>, 
+      both by searching the archives and by asking questions.</li>
+    
 </ul>
-</div>
-    
-<a name="N1000D"></a><a name="Code+Style"></a>
-<h2 class="h3">Code Style</h2>
-<div class="section">
-<p>
-    The following sections show how to set up the code style for Hama in Eclipse. 
-    It is strongly preferred that patches use this style before they are supplied.
-    <br>
-<br>
-    
-<a href="hama-eclipse-formatter.xml">Download hama-eclipse-formatter.xml</a>.
-    <br>
-<br>
-    After this, select Window &gt; Preferences, and open up the configuration for 
-    Java &gt; Code Style &gt; Code Formatter. Click on the button labeled Import... 
-    and select the file you downloaded. Give the style a name, and click OK.
-    </p>
-</div>
-    
-<a name="N10021"></a><a name="Subversion+Access"></a>
-<h2 class="h3">Subversion Access</h2>
-<div class="section">
-<p>
-    This project's Apache Subversion repository can be checked out through SVN with the 
-    following instruction set: <br>
-<br> 
-    svn co https://svn.apache.org/repos/asf/incubator/hama/trunk hama<br>
-<br>
-    (Warning: This is a generic Subversion checkout command which will pull all modules, 
-    tags and/or branches of the project. Please refer to project home page for specific 
-    SVN instructions, or use "Browse Repository" link; in most cases, you will want to 
-    add '/trunk' to the HTTPS URL above to check out only trunk (main development line)). 
-    <br>
-<br>
-    
-<strong>NOTE</strong>: UNIX file and directory names are case sensitive. 
-    </p>
-</div>
   
 </div>
 <!--+

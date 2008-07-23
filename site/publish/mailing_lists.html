@@ -69,9 +69,6 @@ urchinTracker();
 <li>
 <a class="unselected" href="http://wiki.apache.org/hama">Wiki</a>
 </li>
-<li>
-<a class="unselected" href="http://incubator.apache.org/projects/hama.html">Incubation Status</a>
-</li>
 </ul>
 <!--+
     |end Tabs
@@ -105,19 +102,22 @@ document.write("Last Published: " + document.lastModified);
     |start Menu
     +-->
 <div id="menu">
-<div onclick="SwitchMenu('menu_selected_1.1', 'skin/')" id="menu_selected_1.1Title" class="menutitle" style="background-image: url('skin/images/chapter_open.gif');">Home</div>
-<div id="menu_selected_1.1" class="selectedmenuitemgroup" style="display: block;">
+<div onclick="SwitchMenu('menu_1.1', 'skin/')" id="menu_1.1Title" class="menutitle">Home</div>
+<div id="menu_1.1" class="menuitemgroup">
 <div class="menuitem">
 <a href="index.html">Overview</a>
 </div>
+</div>
+<div onclick="SwitchMenu('menu_selected_1.2', 'skin/')" id="menu_selected_1.2Title" class="menutitle" style="background-image: url('skin/images/chapter_open.gif');">Resources</div>
+<div id="menu_selected_1.2" class="selectedmenuitemgroup" style="display: block;">
+<div class="menuitem">
+<a href="developers.html">Developers</a>
+</div>
+<div class="menuitem">
+<a href="issue_tracking.html">Issue Tracking</a>
+</div>
 <div class="menupage">
 <div class="menupagetitle">Mailing Lists</div>
-</div>
-</div>
-<div onclick="SwitchMenu('menu_1.2', 'skin/')" id="menu_1.2Title" class="menutitle">Developers Centre</div>
-<div id="menu_1.2" class="menuitemgroup">
-<div class="menuitem">
-<a href="environments.html">Environments</a>
 </div>
 </div>
 <div id="credit"></div>

@@ -5,7 +5,7 @@
 <meta content="Apache Forrest" name="Generator">
 <meta name="Forrest-version" content="0.8">
 <meta name="Forrest-skin-name" content="pelt">
-<title>Site Linkmap Table of Contents</title>
+<title>Developers</title>
 <link type="text/css" href="skin/basic.css" rel="stylesheet">
 <link media="screen" type="text/css" href="skin/screen.css" rel="stylesheet">
 <link media="print" type="text/css" href="skin/print.css" rel="stylesheet">
@@ -108,10 +108,10 @@ document.write("Last Published: " + document.lastModified);
 <a href="index.html">Overview</a>
 </div>
 </div>
-<div onclick="SwitchMenu('menu_1.2', 'skin/')" id="menu_1.2Title" class="menutitle">Resources</div>
-<div id="menu_1.2" class="menuitemgroup">
-<div class="menuitem">
-<a href="developers.html">Developers</a>
+<div onclick="SwitchMenu('menu_selected_1.2', 'skin/')" id="menu_selected_1.2Title" class="menutitle" style="background-image: url('skin/images/chapter_open.gif');">Resources</div>
+<div id="menu_selected_1.2" class="selectedmenuitemgroup" style="display: block;">
+<div class="menupage">
+<div class="menupagetitle">Developers</div>
 </div>
 <div class="menuitem">
 <a href="issue_tracking.html">Issue Tracking</a>
@@ -136,69 +136,74 @@ document.write("Last Published: " + document.lastModified);
     +-->
 <div id="content">
 <div title="Portable Document Format" class="pdflink">
-<a class="dida" href="linkmap.pdf"><img alt="PDF -icon" src="skin/images/pdfdoc.gif" class="skin"><br>
+<a class="dida" href="developers.pdf"><img alt="PDF -icon" src="skin/images/pdfdoc.gif" class="skin"><br>
         PDF</a>
 </div>
-<h1>Site Linkmap Table of Contents</h1>
+<h1>Developers</h1>
+<div id="minitoc-area">
+<ul class="minitoc">
+<li>
+<a href="#Contribution">Contribution</a>
+</li>
+<li>
+<a href="#Source+Code">Source Code</a>
+</li>
+<li>
+<a href="#Code+Style">Code Style</a>
+</li>
+<li>
+<a href="#Issues">Issues</a>
+</li>
+</ul>
+</div>
+    
+<a name="N1000D"></a><a name="Contribution"></a>
+<h2 class="h3">Contribution</h2>
+<div class="section">
 <p>
-          This is a map of the complete site and its structure.
-        </p>
-<ul>
-<li>
-<a>Hama</a>&nbsp;&nbsp;___________________&nbsp;&nbsp;<em>site</em>
-</li>
-<ul>
-
-  
-<ul>
-<li>
-<a>Home</a>&nbsp;&nbsp;___________________&nbsp;&nbsp;<em>docs</em>
-</li>
-<ul> 
+    We are always looking for contributions. See the 
+    <a href="http://wiki.apache.org/hama">Wiki</a> for details on contributing.
+    </p>
+</div>  
     
-<ul>
-<li>
-<a href="index.html">Overview</a>&nbsp;&nbsp;___________________&nbsp;&nbsp;<em>overview</em>
-</li>
-</ul>
+<a name="N1001B"></a><a name="Source+Code"></a>
+<h2 class="h3">Source Code</h2>
+<div class="section">
+<p>
+    The source files are now stored using Subversion : <br>
+<br>
+    svn checkout https://svn.apache.org/repos/asf/incubator/hama/trunk hama-trunk
+    </p>
+</div>
     
-  
-</ul>
-</ul>
-
-  
-<ul>
-<li>
-<a>Resources</a>&nbsp;&nbsp;___________________&nbsp;&nbsp;<em>docs</em>
-</li>
-<ul>
+<a name="N10028"></a><a name="Code+Style"></a>
+<h2 class="h3">Code Style</h2>
+<div class="section">
+<p>
+    The following sections show how to set up the code style for Hama in Eclipse. 
+    It is strongly preferred that patches use this style before they are supplied.
+    <br>
+<br>
     
-<ul>
-<li>
-<a href="developers.html">Developers</a>&nbsp;&nbsp;___________________&nbsp;&nbsp;<em>developers</em>
-</li>
-</ul>
+<a href="hama-eclipse-formatter.xml">Download hama-eclipse-formatter.xml</a>.
+    <br>
+<br>
+    After this, select Window &gt; Preferences, and open up the configuration for 
+    Java &gt; Code Style &gt; Code Formatter. Click on the button labeled Import... 
+    and select the file you downloaded. Give the style a name, and click OK.
+    </p>
+</div>
     
-<ul>
-<li>
-<a href="issue_tracking.html">Issue Tracking</a>&nbsp;&nbsp;___________________&nbsp;&nbsp;<em>issues</em>
-</li>
-</ul>
+<a name="N1003C"></a><a name="Issues"></a>
+<h2 class="h3">Issues</h2>
+<div class="section">
+<p>
+    All bugs, improvements, patches, etc. should be logged in 
+    <a href="./issue_tracking.html">JIRA</a>
     
-<ul>
-<li>
-<a href="mailing_lists.html">Mailing Lists</a>&nbsp;&nbsp;___________________&nbsp;&nbsp;<em>lists</em>
-</li>
-</ul>
+</p>
+</div>    
   
-</ul>
-</ul>
-
-  
- 
-
-</ul>
-</ul>
 </div>
 <!--+
     |end content
