@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="ISO-8859-1"?><!DOCTYPE profiles PUBLIC "-//APACHE//DTD Documentation V1.3//EN" "document-v13.dtd">
+<?xml version="1.0" encoding="ISO-8859-1"?>
 <profiles version="11">
 <profile kind="CodeFormatterProfile" name="hama-eclipse-formatter" version="11">
 <setting id="org.eclipse.jdt.core.formatter.comment.insert_new_line_before_root_tags" value="insert"/>
