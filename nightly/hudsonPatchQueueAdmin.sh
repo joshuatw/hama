@@ -1,41 +1,66 @@
 #!/bin/bash
 
-set -x
+#set -x
 
 ### The Jira project name.  Examples: HADOOP or RIVER or LUCENE
 PROJECT=$1
 ### The directory to accumulate the patch queue.  Must be 
 ### writable by this process.
 QUEUE_DIR=$2
+### The complete URL to trigger a build.
+TRIGGER_BUILD_URL=$3
 
-GREP=/export/home/nigel/tools/grep/bin/grep
-LOG=$QUEUE_DIR/log.txt
+WGET=/usr/sfw/bin/wget
 
-### Scan email
-while read line
-do
-  ### Check to see if this issue was just made "Patch Available"
-  if [[ `echo $line | $GREP -c "Status: Patch Available"` == 1 ]] ; then
-    patch=true
+QUEUE_HTML_FILE=`pwd`/${PROJECT}_PatchQueue.html
+CURRENT_DIR=${QUEUE_DIR}/current
+
+CURRENT_PATCH=`cat $CURRENT_DIR/defectNum`
+### If there is no current patch being tested, 
+### look for the next one in the queue.
+if [[ $CURRENT_PATCH == "" ]] ; then
+  cd $QUEUE_DIR
+  CURRENT_PATCH=`/bin/ls -1dtr ${PROJECT}* | head -1`
+  ### If there is another patch in the queue, start testing it.
+  if [[ $CURRENT_PATCH != "" ]] ; then
+    rm -rf $CURRENT_DIR
+    mv $CURRENT_PATCH $CURRENT_DIR
+    ### Start build.
+    echo "$CURRENT_PATCH patch submitted for testing at `date`"
+    $WGET -q -O $CURRENT_DIR/build $TRIGGER_BUILD_URL
+    chmod -R g+w $CURRENT_DIR
+  else
+    CURRENT_PATCH="none"
+    CURRENT_PATCH_TIME="-"
   fi
-  ### Look for issue number
-  if [[ `echo $line | $GREP -c "Key: $PROJECT-"` == 1 ]] ; then
-    defect=`expr "$line" : ".*\(${PROJECT}-[0-9]*\)"`
-    break
-  fi
-done
-
-### If this email indicates a new patch, start a build
-if [[ -n $patch && ! -d $QUEUE_DIR/$defect ]] ; then
-  echo "$defect is being processed at `date`" >> $LOG
-  mkdir $QUEUE_DIR/$defect
-
-  ### Write the defect number to a file so buildTest.sh 
-  ### knows which patch to test.
-  echo $defect > $QUEUE_DIR/$defect/defectNum
-
-  ### Since this script is run by the 'daemon' user by sendmail,
-  ### make sure everything it creates is group writable
-  chmod -R a+w $QUEUE_DIR/$defect
 fi
-exit 0
+if [[ -z $CURRENT_PATCH_TIME ]] ; then
+  CURRENT_PATCH_TIME=`/bin/ls -dtl ${CURRENT_DIR}* | awk '{print $6" "$7" "$8" GMT"}'`
+fi
+
+cd $QUEUE_DIR
+QUEUE=`/bin/ls -1dtrl ${PROJECT}* | awk '{print "<tr><td><a href=\"http://issues.apache.org/jira/browse/"$9"\">"$9"</a></td><td>"$6" "$7" "$8" GMT</td></tr>"}'`
+if [[ $QUEUE == "" ]] ; then
+  QUEUE="<tr><td>empty</td><td>-</td></tr>"
+fi
+
+echo "<html>" > $QUEUE_HTML_FILE
+echo "<title>Patch Queue for $PROJECT</title>" >> $QUEUE_HTML_FILE
+echo "<h1>Patch Queue for $PROJECT</h1>" >> $QUEUE_HTML_FILE
+echo "<hr>" >> $QUEUE_HTML_FILE
+echo "<h2>Currently Running (or Waiting To Run)</h2>" >> $QUEUE_HTML_FILE
+echo "<table cellspacing=10><tr align=left><th>Issue</th><th>Date Submitted to Run</th></tr>" >> $QUEUE_HTML_FILE
+if [[ $CURRENT_PATCH == "none" ]] ; then
+  echo "<tr><td>$CURRENT_PATCH</td><td>$CURRENT_PATCH_TIME</td></tr>" >> $QUEUE_HTML_FILE
+else
+  echo "<tr><td><a href=\"http://issues.apache.org/jira/browse/${CURRENT_PATCH}\">$CURRENT_PATCH</a></td><td>$CURRENT_PATCH_TIME</td></tr>" >> $QUEUE_HTML_FILE
+fi
+echo "</table>" >> $QUEUE_HTML_FILE
+echo "<hr>" >> $QUEUE_HTML_FILE
+echo "<h2>Waiting in the Queue</h2>" >> $QUEUE_HTML_FILE
+echo "<table cellspacing=10><tr align=left><th>Issue</th><th>Date Submitted</th></tr>" >> $QUEUE_HTML_FILE
+echo "$QUEUE" >> $QUEUE_HTML_FILE
+echo "</table>" >> $QUEUE_HTML_FILE
+echo "<hr>" >> $QUEUE_HTML_FILE
+echo "This file last updated at: `date`" >>$QUEUE_HTML_FILE
+echo "</html>" >> $QUEUE_HTML_FILE
