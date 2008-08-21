@@ -54,6 +54,7 @@ checkout () {
 setup () {
   ### Download latest patch file (ignoring .htm and .html)
   $WGET -q -O $PATCH_DIR/jira http://issues.apache.org/jira/browse/$defect
+  chmod -R g+w $PATCH_DIR/jira
   if [[ `$GREP -c 'Patch Available' $PATCH_DIR/jira` == 0 ]] ; then
     echo "$defect is not \"Patch Available\".  Exiting."
     cleanupAndExit 0
@@ -64,7 +65,7 @@ setup () {
   echo "$defect patch is being downloaded at `date` from"
   echo "$patchURL"
   $WGET -q -O $PATCH_DIR/patch $patchURL
-
+  chmod -R g+w $PATCH_DIR/patch
   JIRA_COMMENT="Here are the results of testing the latest attachment 
 $patchURL
 against trunk revision ${SVN_REVISION}."
@@ -361,7 +362,7 @@ runCoreTests () {
   echo ""
   echo "======================================================================"
   echo "======================================================================"
-  echo "    Running core tests."
+  echo "    Running Hama tests."
   echo "======================================================================"
   echo "======================================================================"
   echo ""
@@ -369,7 +370,7 @@ runCoreTests () {
   ### Kill any rogue build processes from the last attempt
   $PS -auxwww | $GREP HamaPatchProcess | /usr/bin/nawk '{print $2}' | /usr/bin/xargs -t -I {} /usr/bin/kill -9 {} > /dev/null
 
-  $ANT_HOME/bin/ant -Dversion=${SVN_REVISION}_${defect}_PATCH-${patchNum} -DHamaPatchProcess= -Dtest.junit.output.format=xml -Dtest.output=yes -Dcompile.c++=yes -Dforrest.home=$FORREST_HOME create-c++-configure docs tar test-core
+  $ANT_HOME/bin/ant -Dversion=${SVN_REVISION}_${defect}_PATCH-${patchNum} -DHamaPatchProcess= -Dtest.junit.output.format=xml -Dtest.output=yes tar test
   if [[ $? != 0 ]] ; then
     JIRA_COMMENT="$JIRA_COMMENT
 
@@ -379,34 +380,6 @@ runCoreTests () {
   JIRA_COMMENT="$JIRA_COMMENT
 
     core tests +1.  The patch passed core unit tests."
-  return 0
-}
-
-###############################################################################
-### Run the test-contrib target
-runContribTests () {
-  echo ""
-  echo ""
-  echo "======================================================================"
-  echo "======================================================================"
-  echo "    Running contrib tests."
-  echo "======================================================================"
-  echo "======================================================================"
-  echo ""
-  echo ""
-  ### Kill any rogue build processes from the last attempt
-  $PS -auxwww | $GREP HamaPatchProcess | /usr/bin/nawk '{print $2}' | /usr/bin/xargs -t -I {} /usr/bin/kill -9 {} > /dev/null
-
-  $ANT_HOME/bin/ant -Dversion=${SVN_REVISION}_${defect}_PATCH-${patchNum} -DHamaPatchProcess= -Dtest.junit.output.format=xml -Dtest.output=yes test-contrib
-  if [[ $? != 0 ]] ; then
-    JIRA_COMMENT="$JIRA_COMMENT
-
-    contrib tests -1.  The patch failed contrib unit tests."
-    return 1
-  fi
-  JIRA_COMMENT="$JIRA_COMMENT
-
-    contrib tests +1.  The patch passed contrib unit tests."
   return 0
 }
 
@@ -509,8 +482,6 @@ checkStyle
 checkFindbugsWarnings
 (( RESULT = RESULT + $? ))
 runCoreTests
-(( RESULT = RESULT + $? ))
-runContribTests
 (( RESULT = RESULT + $? ))
 JIRA_COMMENT_FOOTER="Test results: http://hudson.zones.apache.org/hudson/job/$JOB_NAME/$BUILD_NUMBER/testReport/
 $JIRA_COMMENT_FOOTER"
