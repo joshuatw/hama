@@ -87,7 +87,7 @@ against trunk revision ${SVN_REVISION}."
   $ANT_HOME/bin/ant -Dversion=${SVN_REVISION}_${defect}_PATCH-${patchNum} -DHamaPatchProcess= releaseaudit &> $PATCH_DIR/trunkReleaseAuditWarnings.txt
   $ANT_HOME/bin/ant -Dversion=${SVN_REVISION}_${defect}_PATCH-${patchNum} -Djavac.args="-Xlint -Xmaxwarns 1000" -DHamaPatchProcess= clean tar &> $PATCH_DIR/trunkJavacWarnings.txt
   $ANT_HOME/bin/ant -Dversion=${SVN_REVISION}_${defect}_PATCH-${patchNum} -Dfindbugs.home=$FINDBUGS_HOME -DHamaPatchProcess= findbugs &> /dev/null
-  cp $WORKSPACE/trunk/build/test/findbugs/*.xml $PATCH_DIR/trunkFindbugsWarnings.xml
+  cp $WORKSPACE/trunk/build/reports/findbugs/*.xml $PATCH_DIR/trunkFindbugsWarnings.xml
 }
 
 ###############################################################################
@@ -326,9 +326,9 @@ checkFindbugsWarnings () {
     findbugs -1.  The patch appears to cause Findbugs to fail."
     return 1
   fi
-JIRA_COMMENT_FOOTER="Findbugs warnings: http://hudson.zones.apache.org/hudson/job/$JOB_NAME/$BUILD_NUMBER/artifact/trunk/build/test/findbugs/newPatchFindbugsWarnings.html
+JIRA_COMMENT_FOOTER="Findbugs warnings: http://hudson.zones.apache.org/hudson/job/$JOB_NAME/$BUILD_NUMBER/artifact/trunk/build/reports/findbugs/newPatchFindbugsWarnings.html
 $JIRA_COMMENT_FOOTER"
-  cp $WORKSPACE/trunk/build/test/findbugs/*.xml $PATCH_DIR/patchFindbugsWarnings.xml
+  cp $WORKSPACE/trunk/build/reports/findbugs/*.xml $PATCH_DIR/patchFindbugsWarnings.xml
   $FINDBUGS_HOME/bin/setBugDatabaseInfo -timestamp "01/01/1999" \
     $PATCH_DIR/trunkFindbugsWarnings.xml \
     $PATCH_DIR/trunkFindbugsWarnings.xml
@@ -339,10 +339,10 @@ $JIRA_COMMENT_FOOTER"
     $PATCH_DIR/trunkFindbugsWarnings.xml \
     $PATCH_DIR/patchFindbugsWarnings.xml
   findbugsWarnings=`$FINDBUGS_HOME/bin/filterBugs -first "01/01/2000" $PATCH_DIR/findbugsMerge.xml \
-    $WORKSPACE/trunk/build/test/findbugs/newPatchFindbugsWarnings.xml | /usr/bin/nawk '{print $1}'`
+    $WORKSPACE/trunk/build/reports/findbugs/newPatchFindbugsWarnings.xml | /usr/bin/nawk '{print $1}'`
   $FINDBUGS_HOME/bin/convertXmlToText -html \
-    $WORKSPACE/trunk/build/test/findbugs/newPatchFindbugsWarnings.xml \
-    $WORKSPACE/trunk/build/test/findbugs/newPatchFindbugsWarnings.html
+    $WORKSPACE/trunk/build/reports/findbugs/newPatchFindbugsWarnings.xml \
+    $WORKSPACE/trunk/build/reports/findbugs/newPatchFindbugsWarnings.html
   if [[ $findbugsWarnings != 0 ]] ; then
     JIRA_COMMENT="$JIRA_COMMENT
 
