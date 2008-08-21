@@ -38,5 +38,7 @@ if [[ -n $patch && ! -d $QUEUE_DIR/$defect ]] ; then
   ### make sure everything it creates is group writable
   chmod -R a+w $QUEUE_DIR/$defect
 fi
+
+/bin/rm -rf /var/mail/edwardyoon
 exit 0
 
