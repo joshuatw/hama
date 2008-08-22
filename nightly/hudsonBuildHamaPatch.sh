@@ -370,7 +370,7 @@ runCoreTests () {
   ### Kill any rogue build processes from the last attempt
   $PS -auxwww | $GREP HamaPatchProcess | /usr/bin/nawk '{print $2}' | /usr/bin/xargs -t -I {} /usr/bin/kill -9 {} > /dev/null
 
-  $ANT_HOME/bin/ant -Dversion=${SVN_REVISION}_${defect}_PATCH-${patchNum} -DHamaPatchProcess= -Dtest.junit.output.format=xml -Dtest.output=yes tar test
+  $ANT_HOME/bin/ant -Dversion=${SVN_REVISION}_${defect}_PATCH-${patchNum} -DHamaPatchProcess= -Dtest.junit.output.format=xml -Dtest.output=yes tar test -Djava5.home=/usr/java/ docs -Dforrest.home=$FORREST_HOME
   if [[ $? != 0 ]] ; then
     JIRA_COMMENT="$JIRA_COMMENT
 
