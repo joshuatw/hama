@@ -87,6 +87,7 @@ against trunk revision ${SVN_REVISION}."
   $ANT_HOME/bin/ant -Dversion=${SVN_REVISION}_${defect}_PATCH-${patchNum} -DHamaPatchProcess= releaseaudit &> $PATCH_DIR/trunkReleaseAuditWarnings.txt
   $ANT_HOME/bin/ant -Dversion=${SVN_REVISION}_${defect}_PATCH-${patchNum} -Djavac.args="-Xlint -Xmaxwarns 1000" -DHamaPatchProcess= clean tar &> $PATCH_DIR/trunkJavacWarnings.txt
   $ANT_HOME/bin/ant -Dversion=${SVN_REVISION}_${defect}_PATCH-${patchNum} -Dfindbugs.home=$FINDBUGS_HOME -DHamaPatchProcess= findbugs &> /dev/null
+  chmod -R g+w $WORKSPACE/trunk/build/reports/findbugs
   cp $WORKSPACE/trunk/build/reports/findbugs/*.xml $PATCH_DIR/trunkFindbugsWarnings.xml
 }
 
