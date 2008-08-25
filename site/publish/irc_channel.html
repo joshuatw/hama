@@ -5,7 +5,7 @@
 <meta content="Apache Forrest" name="Generator">
 <meta name="Forrest-version" content="0.8">
 <meta name="Forrest-skin-name" content="pelt">
-<title>Welcome to Hama project</title>
+<title>IRC Channel</title>
 <link type="text/css" href="skin/basic.css" rel="stylesheet">
 <link media="screen" type="text/css" href="skin/screen.css" rel="stylesheet">
 <link media="print" type="text/css" href="skin/print.css" rel="stylesheet">
@@ -104,17 +104,17 @@ document.write("Last Published: " + document.lastModified);
     |start Menu
     +-->
 <div id="menu">
-<div onclick="SwitchMenu('menu_selected_1.1', 'skin/')" id="menu_selected_1.1Title" class="menutitle" style="background-image: url('skin/images/chapter_open.gif');">Home</div>
-<div id="menu_selected_1.1" class="selectedmenuitemgroup" style="display: block;">
-<div class="menupage">
-<div class="menupagetitle">Overview</div>
+<div onclick="SwitchMenu('menu_1.1', 'skin/')" id="menu_1.1Title" class="menutitle">Home</div>
+<div id="menu_1.1" class="menuitemgroup">
+<div class="menuitem">
+<a href="index.html">Overview</a>
 </div>
 <div class="menuitem">
 <a href="who_we_are.html">Who we are?</a>
 </div>
 </div>
-<div onclick="SwitchMenu('menu_1.2', 'skin/')" id="menu_1.2Title" class="menutitle">Resources</div>
-<div id="menu_1.2" class="menuitemgroup">
+<div onclick="SwitchMenu('menu_selected_1.2', 'skin/')" id="menu_selected_1.2Title" class="menutitle" style="background-image: url('skin/images/chapter_open.gif');">Resources</div>
+<div id="menu_selected_1.2" class="selectedmenuitemgroup" style="display: block;">
 <div class="menuitem">
 <a href="developers.html">Developers</a>
 </div>
@@ -124,14 +124,11 @@ document.write("Last Published: " + document.lastModified);
 <div class="menuitem">
 <a href="mailing_lists.html">Mailing Lists</a>
 </div>
-<div class="menuitem">
-<a href="irc_channel.html">IRC channel</a>
+<div class="menupage">
+<div class="menupagetitle">IRC channel</div>
 </div>
 </div>
-<div id="credit">
-<hr>
-<a href="http://forrest.apache.org/"><img border="0" title="Built with Apache Forrest" alt="Built with Apache Forrest - logo" src="images/built-with-forrest-button.png" style="width: 88px;height: 31px;"></a>
-</div>
+<div id="credit"></div>
 <div id="roundbottom">
 <img style="display: none" class="corner" height="15" width="15" alt="" src="skin/images/rc-b-l-15-1body-2menu-3menu.png"></div>
 <!--+
@@ -147,76 +144,39 @@ document.write("Last Published: " + document.lastModified);
     +-->
 <div id="content">
 <div title="Portable Document Format" class="pdflink">
-<a class="dida" href="index.pdf"><img alt="PDF -icon" src="skin/images/pdfdoc.gif" class="skin"><br>
+<a class="dida" href="irc_channel.pdf"><img alt="PDF -icon" src="skin/images/pdfdoc.gif" class="skin"><br>
         PDF</a>
 </div>
-<h1>Welcome to Hama project</h1>
+<h1>IRC Channel</h1>
 <div id="minitoc-area">
 <ul class="minitoc">
 <li>
-<a href="#Introduction"> Introduction </a>
-</li>
-<li>
-<a href="#Recent+News">Recent News</a>
-</li>
-<li>
-<a href="#Parallelism+in+Map%2FReduce">Parallelism in Map/Reduce</a>
+<a href="#IRC+Channel">IRC Channel</a>
 </li>
 </ul>
 </div>
     
-<a name="N1000D"></a><a name="Introduction"></a>
-<h2 class="h3"> Introduction </h2>
-<div class="section">
-<table class="NonBorderTable">
-      
-<tr>
-<td colspan="1" rowspan="1"><img alt="Hama Logo" src="./images/hama_logo.png"></td>
-      <td colspan="1" rowspan="1"><strong>Hama</strong> (means a hippopotamus in Korean) is a 
-      parallel matrix computational package,
-      which provides an library of matrix operations for the large-scale
-      processing development environment and Map/Reduce framework for
-      the large-scale Numerical Analysis and Data Mining, which need the
-      intensive computation power of matrix inversion, e.g. linear regression,
-      PCA, SVM and etc.
-      It will be also useful for many scientific applications, e.g. physics
-      computations, linear algebra, computational fluid dynamics, statistics,
-      graphic rendering and many more.
-      </td>
-</tr>
-</table>
-</div>
-    
-<a name="N10026"></a><a name="Recent+News"></a>
-<h2 class="h3">Recent News</h2>
-<div class="section">
-<ul>
-      
-<li>20 May 2008 - Hama accepted to Apache Incubator Project.
-      <br>&nbsp;&nbsp;
-      The Incubator PMC have voted to accept Hama to be
-      a apache incubator project.
-      </li>
-      
-<li>23 June 2008 - A
-       <a href="http://wiki.apache.org/hama/ScaLAPACK">meeting</a>
-       with Professor Choi J., a member of
-       <a href="http://www.netlib.org/scalapack/">ScaLAPACK</a> team.</li>
-       
-<li>18 August 2008 - Source code is now available in the 
-       <a href="./developers.html">Apache SVN repository</a>.
-       </li>
-    
-</ul>
-</div>
-    
-<a name="N10047"></a><a name="Parallelism+in+Map%2FReduce"></a>
-<h2 class="h3">Parallelism in Map/Reduce</h2>
+<a name="N1000D"></a><a name="IRC+Channel"></a>
+<h2 class="h3">IRC Channel</h2>
 <div class="section">
 <p>
-        
-<img alt="Map/Reduce Diagram" src="./images/MapReduce.png">
-      </p>
+    There is an IRC channel dedicated to Hama at irc.freenode.org. 
+    The name of the channel is #hama. 
+    <br>
+<br>
+    The IRC channel can be used for online discussion about hama related stuff, 
+    but developers should be careful to transfer all the official decisions 
+    or useful discussions to the <a href="./issue_tracking.html">issue tracking 
+    </a>system. 
+    </p>
+<ul>
+      
+<li>
+<a href="http://www.xchat.org/">XChat: Multiplatform Chat Program</a>
+      
+</li>
+    
+</ul>
 </div>
   
 </div>
@@ -238,7 +198,6 @@ document.write("Last Published: " + document.lastModified);
         Copyright &copy;
          2008 <a href="http://www.apache.org/licenses/">The Apache Software Foundation.</a>
 </div>
-<div id="logos"></div>
 <!--+
     |end bottomstrip
     +-->
