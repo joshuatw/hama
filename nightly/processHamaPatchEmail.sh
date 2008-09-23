@@ -26,7 +26,9 @@ do
 done
 
 ### If this email indicates a new patch, start a build
-if [[ -n $patch && ! -d $QUEUE_DIR/$defect ]] ; then
+## -n $patch && 
+
+if [[ ! -d $QUEUE_DIR/$defect ]] ; then
   echo "$defect is being processed at `date`" >> $LOG
   mkdir $QUEUE_DIR/$defect
 
