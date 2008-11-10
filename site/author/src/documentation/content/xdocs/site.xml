@@ -44,11 +44,18 @@ See http://forrest.apache.org/docs/linking.html for more info.
   </docs>
 
   <docs label="Resources">
-    <developers label="Developers" href="developers.html" />
-    <issues label="Issue Tracking" href="issue_tracking.html" />
-    <lists     label="Mailing Lists"      href="mailing_lists.html" />
+    <developers label="Developers"     href="developers.html" />
+    <issues     label="Issue Tracking" href="issue_tracking.html" />
+    <lists      label="Mailing Lists"  href="mailing_lists.html" />
+    <irc        label="IRC channel"    href="irc_channel.html" />
   </docs>
 
+  <docs label="Related Projects">
+    <hadoop label="Hadoop"     href="http://hadoop.apache.org/core/" />
+    <hbase  label="Hbase"      href="http://hadoop.apache.org/hbase/" />
+    <mahout label="Mahout"     href="http://lucene.apache.org/mahout/" />
+  </docs>
+  
   <external-refs>
     <site      href="http://incubator.apache.org/hama/"/>
     <lists     href="http://incubator.apache.org/hama/mailing_lists.html"/>
