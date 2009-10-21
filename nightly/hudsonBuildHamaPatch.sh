@@ -327,7 +327,7 @@ checkFindbugsWarnings () {
     findbugs -1.  The patch appears to cause Findbugs to fail."
     return 1
   fi
-JIRA_COMMENT_FOOTER="Findbugs warnings: http://hudson.zones.apache.org/hudson/job/$JOB_NAME/$BUILD_NUMBER/artifact/trunk/build/reports/findbugs/newPatchFindbugsWarnings.html
+JIRA_COMMENT_FOOTER="Findbugs warnings: http://hudson.zones.apache.org/hudson/job/$JOB_NAME/$BUILD_NUMBER/findbugsResult/
 $JIRA_COMMENT_FOOTER"
   cp $WORKSPACE/trunk/build/reports/findbugs/*.xml $PATCH_DIR/patchFindbugsWarnings.xml
   $FINDBUGS_HOME/bin/setBugDatabaseInfo -timestamp "01/01/1999" \
