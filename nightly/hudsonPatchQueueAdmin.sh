@@ -27,7 +27,7 @@ if [[ $CURRENT_PATCH == "" ]] ; then
     mv $CURRENT_PATCH $CURRENT_DIR
     ### Start build.
     echo "$CURRENT_PATCH patch submitted for testing at `date`"
-    $WGET -q -O $CURRENT_DIR/build $TRIGGER_BUILD_URL
+    $WGET --no-check-certificate -q -O $CURRENT_DIR/build $TRIGGER_BUILD_URL
     chmod -R g+w $CURRENT_DIR
   else
     CURRENT_PATCH="none"

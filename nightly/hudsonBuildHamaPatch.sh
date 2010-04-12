@@ -53,7 +53,7 @@ checkout () {
 ###############################################################################
 setup () {
   ### Download latest patch file (ignoring .htm and .html)
-  $WGET -q -O $PATCH_DIR/jira http://issues.apache.org/jira/browse/$defect
+  $WGET --no-check-certificate -q -O $PATCH_DIR/jira http://issues.apache.org/jira/browse/$defect
   chmod -R g+w $PATCH_DIR/jira
   if [[ `$GREP -c 'Patch Available' $PATCH_DIR/jira` == 0 ]] ; then
     echo "$defect is not \"Patch Available\".  Exiting."
@@ -64,7 +64,7 @@ setup () {
   patchNum=`echo $patchURL | $GREP -o '[0-9]*/' | $GREP -o '[0-9]*'`
   echo "$defect patch is being downloaded at `date` from"
   echo "$patchURL"
-  $WGET -q -O $PATCH_DIR/patch $patchURL
+  $WGET --no-check-certificate -q -O $PATCH_DIR/patch $patchURL
   chmod -R g+w $PATCH_DIR/patch
   JIRA_COMMENT="Here are the results of testing the latest attachment 
 $patchURL
@@ -459,7 +459,7 @@ checkout
 RESULT=$?
 if [[ $? != 0 ]] ; then
   ### Resubmit build.
-  $WGET -q -O $PATCH_DIR/build $TRIGGER_BUILD_URL
+  $WGET --no-check-certificate -q -O $PATCH_DIR/build $TRIGGER_BUILD_URL
   exit 100
 fi
 setup
