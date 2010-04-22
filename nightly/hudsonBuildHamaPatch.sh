@@ -409,10 +409,10 @@ $JIRA_COMMENT_FOOTER"
   echo "$comment"
 
   ### Update Jira with a comment
-  export USER=hudson
-  $JIRA -s issues.apache.org/jira login hamaqa $JIRA_PASSWD
-  $JIRA -s issues.apache.org/jira comment $defect "$comment"
-  $JIRA -s issues.apache.org/jira logout
+  ### export USER=hudson
+  ### $JIRA -s issues.apache.org/jira login hamaqa $JIRA_PASSWD
+  ### $JIRA -s issues.apache.org/jira comment $defect "$comment"
+  ### $JIRA -s issues.apache.org/jira logout
 }
 
 ###############################################################################
@@ -487,5 +487,5 @@ runCoreTests
 JIRA_COMMENT_FOOTER="Test results: http://hudson.zones.apache.org/hudson/job/$JOB_NAME/$BUILD_NUMBER/testReport/
 $JIRA_COMMENT_FOOTER"
 
-### submitJiraComment $RESULT
+submitJiraComment $RESULT
 cleanupAndExit $RESULT
