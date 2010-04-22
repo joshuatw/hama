@@ -487,5 +487,5 @@ runCoreTests
 JIRA_COMMENT_FOOTER="Test results: http://hudson.zones.apache.org/hudson/job/$JOB_NAME/$BUILD_NUMBER/testReport/
 $JIRA_COMMENT_FOOTER"
 
-submitJiraComment $RESULT
+### submitJiraComment $RESULT
 cleanupAndExit $RESULT
