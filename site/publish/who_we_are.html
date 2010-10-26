@@ -174,8 +174,44 @@ document.write("Last Published: " + document.lastModified);
 </li>
 </ul>
 </div>
-	
-<a name="N1000D"></a><a name="Active+Committers"></a>
+
+<script src="http://widgets.twimg.com/j/2/widget.js"></script>
+<script>
+new TWTR.Widget({
+  version: 2,
+  type: 'search',
+  id: 'credit2',
+  search: '\"apache hama\" OR apachehama OR #ApacheHama',
+  interval: 6000,
+  title: 'Recent Tweets About Apache Hama',
+  subject: '#ApacheHama on Twitter',
+  width: 206,
+  height: 280,
+  theme: {
+    shell: {
+      background: '#4a6d8c',
+      color: '#ffffff'
+    },
+    tweets: {
+      background: '#ffffff',
+      color: '#444444',
+      links: '#1985b5'
+    }
+  },
+  features: {
+    scrollbar: false,
+    loop: true,
+    live: true,
+    hashtags: true,
+    timestamp: true,
+    avatars: true,
+    toptweets: true,
+    behavior: 'default'
+  }
+}).render().start();
+</script>
+ 
+	<a name="N10013"></a><a name="Active+Committers"></a>
 <h2 class="h3">Active Committers</h2>
 <div class="section">
 <p>Hama's active committers are:</p>
@@ -215,7 +251,7 @@ document.write("Last Published: " + document.lastModified);
 </div>
 	
 	
-<a name="N1006F"></a><a name="Mentors"></a>
+<a name="N10075"></a><a name="Mentors"></a>
 <h2 class="h3">Mentors</h2>
 <div class="section">
 <p>Mentors while in incubation include:</p>
@@ -231,7 +267,7 @@ document.write("Last Published: " + document.lastModified);
 </div>
 
 	
-<a name="N10085"></a><a name="Contributors"></a>
+<a name="N1008B"></a><a name="Contributors"></a>
 <h2 class="h3">Contributors</h2>
 <div class="section">
 <p>Contributors are:</p>
