@@ -410,10 +410,10 @@ $JIRA_COMMENT_FOOTER"
   echo "$comment"
 
   ### Update Jira with a comment
-  ### export USER=hudson
-  ### $JIRA -s issues.apache.org/jira login hamaqa $JIRA_PASSWD
-  ### $JIRA -s issues.apache.org/jira comment $defect "$comment"
-  ### $JIRA -s issues.apache.org/jira logout
+  export USER=hudson
+  $JIRA -s issues.apache.org/jira login hamaqa $JIRA_PASSWD
+  $JIRA -s issues.apache.org/jira comment $defect "$comment"
+  $JIRA -s issues.apache.org/jira logout
 }
 
 ###############################################################################
