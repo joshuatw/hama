@@ -59,7 +59,6 @@ new TWTR.Widget({
   }
 }).render().start();
 </script>
-
     <section>
     <title>Recent News</title>
     <ul>
@@ -79,9 +78,8 @@ new TWTR.Widget({
      <section>
       <title> Overview </title>
       <p>
-      <strong>Hama</strong> Apache Hama is a distributed computing framework based on 
-      BSP (Bulk Synchronous Parallel) computing techniques for massive scientific computations (e.g., matrix, graph, network, ..., etc), 
-      currently being incubated as one of the incubator project by the Apache Software Foundation.
+      <strong>Hama</strong> is a distributed computing framework based on 
+      BSP (Bulk Synchronous Parallel) computing techniques for massive scientific computations.
       </p>
     </section>
     
