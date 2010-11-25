@@ -24,7 +24,7 @@ GREP=/export/home/edwardyoon/tools/grep/bin/grep
 PATCH=/export/home/edwardyoon/tools/patch/bin/patch
 JIRA=/export/home/edwardyoon/tools/jira_cli/src/cli/jira
 FINDBUGS_HOME=/export/home/edwardyoon/tools/findbugs/latest
-FORREST_HOME=/export/home/edwardyoon/tools/forrest/latest
+FORREST_HOME=/home/hudson/tools/forrest/apache-forrest-0.8/
 ANT_HOME=/home/hudson/tools/ant/latest
 
 ###############################################################################
@@ -372,7 +372,7 @@ runCoreTests () {
   ### Kill any rogue build processes from the last attempt
   $PS -auxwww | $GREP HamaPatchProcess | /usr/bin/nawk '{print $2}' | /usr/bin/xargs -t -I {} /usr/bin/kill -9 {} > /dev/null
 
-  $ANT_HOME/bin/ant -Dversion=${SVN_REVISION}_${defect}_PATCH-${patchNum} -DHamaPatchProcess= -Dtest.junit.output.format=xml -Dtest.output=yes tar test -Djava5.home=/usr/java/ docs -Dforrest.home=$FORREST_HOME
+  $ANT_HOME/bin/ant -Dversion=${SVN_REVISION}_${defect}_PATCH-${patchNum} -DHamaPatchProcess= -Dtest.junit.output.format=xml -Dtest.output=yes tar test docs -Dforrest.home=$FORREST_HOME
   if [[ $? != 0 ]] ; then
     JIRA_COMMENT="$JIRA_COMMENT
 
