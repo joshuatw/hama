@@ -114,8 +114,14 @@ document.write("Last Published: " + document.lastModified);
 <a href="privacy_policy.html">Privacy Policy</a>
 </div>
 </div>
-<div onclick="SwitchMenu('menu_1.2', 'skin/')" id="menu_1.2Title" class="menutitle">Resources</div>
+<div onclick="SwitchMenu('menu_1.2', 'skin/')" id="menu_1.2Title" class="menutitle">Documentation</div>
 <div id="menu_1.2" class="menuitemgroup">
+<div class="menuitem">
+<a href="docs/r0.2.0/index.html">Release 0.2.0</a>
+</div>
+</div>
+<div onclick="SwitchMenu('menu_1.3', 'skin/')" id="menu_1.3Title" class="menutitle">Resources</div>
+<div id="menu_1.3" class="menuitemgroup">
 <div class="menuitem">
 <a href="developers.html">Developers</a>
 </div>
@@ -129,8 +135,8 @@ document.write("Last Published: " + document.lastModified);
 <a href="irc_channel.html">IRC channel</a>
 </div>
 </div>
-<div onclick="SwitchMenu('menu_1.3', 'skin/')" id="menu_1.3Title" class="menutitle">Related Projects</div>
-<div id="menu_1.3" class="menuitemgroup">
+<div onclick="SwitchMenu('menu_1.4', 'skin/')" id="menu_1.4Title" class="menutitle">Related Projects</div>
+<div id="menu_1.4" class="menuitemgroup">
 <div class="menuitem">
 <a href="http://hadoop.apache.org/core/">Hadoop</a>
 </div>
@@ -174,44 +180,9 @@ document.write("Last Published: " + document.lastModified);
 </li>
 </ul>
 </div>
-
-<script src="http://widgets.twimg.com/j/2/widget.js"></script>
-<script>
-new TWTR.Widget({
-  version: 2,
-  type: 'search',
-  id: 'credit2',
-  search: '\"apache hama\" OR apachehama OR #ApacheHama',
-  interval: 6000,
-  title: 'Recent Tweets About Apache Hama',
-  subject: '#ApacheHama on Twitter',
-  width: 206,
-  height: 280,
-  theme: {
-    shell: {
-      background: '#4a6d8c',
-      color: '#ffffff'
-    },
-    tweets: {
-      background: '#ffffff',
-      color: '#444444',
-      links: '#1985b5'
-    }
-  },
-  features: {
-    scrollbar: false,
-    loop: true,
-    live: true,
-    hashtags: true,
-    timestamp: true,
-    avatars: true,
-    toptweets: true,
-    behavior: 'default'
-  }
-}).render().start();
-</script>
  
-	<a name="N10013"></a><a name="Active+Committers"></a>
+	
+<a name="N1000D"></a><a name="Active+Committers"></a>
 <h2 class="h3">Active Committers</h2>
 <div class="section">
 <p>Hama's active committers are:</p>
@@ -251,7 +222,7 @@ new TWTR.Widget({
 </div>
 	
 	
-<a name="N10075"></a><a name="Mentors"></a>
+<a name="N1006F"></a><a name="Mentors"></a>
 <h2 class="h3">Mentors</h2>
 <div class="section">
 <p>Mentors while in incubation include:</p>
@@ -262,6 +233,10 @@ new TWTR.Widget({
 <li>Brett Porter</li>
 	  
 <li>Jeff Eastman</li>
+	  
+<li>Tommaso Toefili</li>
+	  
+<li>Steve Loughran</li>
 	
 </ul>
 </div>

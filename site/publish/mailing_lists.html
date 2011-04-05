@@ -114,8 +114,14 @@ document.write("Last Published: " + document.lastModified);
 <a href="privacy_policy.html">Privacy Policy</a>
 </div>
 </div>
-<div onclick="SwitchMenu('menu_selected_1.2', 'skin/')" id="menu_selected_1.2Title" class="menutitle" style="background-image: url('skin/images/chapter_open.gif');">Resources</div>
-<div id="menu_selected_1.2" class="selectedmenuitemgroup" style="display: block;">
+<div onclick="SwitchMenu('menu_1.2', 'skin/')" id="menu_1.2Title" class="menutitle">Documentation</div>
+<div id="menu_1.2" class="menuitemgroup">
+<div class="menuitem">
+<a href="docs/r0.2.0/index.html">Release 0.2.0</a>
+</div>
+</div>
+<div onclick="SwitchMenu('menu_selected_1.3', 'skin/')" id="menu_selected_1.3Title" class="menutitle" style="background-image: url('skin/images/chapter_open.gif');">Resources</div>
+<div id="menu_selected_1.3" class="selectedmenuitemgroup" style="display: block;">
 <div class="menuitem">
 <a href="developers.html">Developers</a>
 </div>
@@ -129,8 +135,8 @@ document.write("Last Published: " + document.lastModified);
 <a href="irc_channel.html">IRC channel</a>
 </div>
 </div>
-<div onclick="SwitchMenu('menu_1.3', 'skin/')" id="menu_1.3Title" class="menutitle">Related Projects</div>
-<div id="menu_1.3" class="menuitemgroup">
+<div onclick="SwitchMenu('menu_1.4', 'skin/')" id="menu_1.4Title" class="menutitle">Related Projects</div>
+<div id="menu_1.4" class="menuitemgroup">
 <div class="menuitem">
 <a href="http://hadoop.apache.org/core/">Hadoop</a>
 </div>
@@ -175,42 +181,8 @@ document.write("Last Published: " + document.lastModified);
 </ul>
 </div>
 
-<script src="http://widgets.twimg.com/j/2/widget.js"></script>
-<script>
-new TWTR.Widget({
-  version: 2,
-  type: 'search',
-  id: 'credit2',
-  search: '\"apache hama\" OR apachehama OR #ApacheHama',
-  interval: 6000,
-  title: 'Recent Tweets About Apache Hama',
-  subject: '#ApacheHama on Twitter',
-  width: 206,
-  height: 280,
-  theme: {
-    shell: {
-      background: '#4a6d8c',
-      color: '#ffffff'
-    },
-    tweets: {
-      background: '#ffffff',
-      color: '#444444',
-      links: '#1985b5'
-    }
-  },
-  features: {
-    scrollbar: false,
-    loop: true,
-    live: true,
-    hashtags: true,
-    timestamp: true,
-    avatars: true,
-    toptweets: true,
-    behavior: 'default'
-  }
-}).render().start();
-</script>
-    <a name="N10013"></a><a name="Hama+User+List"></a>
+    
+<a name="N1000D"></a><a name="Hama+User+List"></a>
 <h2 class="h3">Hama User List</h2>
 <div class="section">
 <p>
@@ -232,7 +204,7 @@ new TWTR.Widget({
 </div>
     
     
-<a name="N10030"></a><a name="Hama+Developer+List"></a>
+<a name="N1002A"></a><a name="Hama+Developer+List"></a>
 <h2 class="h3">Hama Developer List</h2>
 <div class="section">
 <p>
@@ -254,7 +226,7 @@ new TWTR.Widget({
 </div>
 
     
-<a name="N1004D"></a><a name="Hama+Commit+List"></a>
+<a name="N10047"></a><a name="Hama+Commit+List"></a>
 <h2 class="h3">Hama Commit List</h2>
 <div class="section">
 <p>
