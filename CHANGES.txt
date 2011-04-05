@@ -12,6 +12,8 @@ Release 0.2.1 - Unreleased
     HAMA-371: Add a parameter to build.xml to allow developers deciding to reset content 
                        in conf files or not when building artifacts (ChiaHung Lin via edwardyoon)
 
+Release 0.2 - Unreleased
+
   NEW FEATURES
 
     HAMA-339: Add job status command (edwardyoon)
