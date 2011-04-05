@@ -1,6 +1,16 @@
 Hama Change Log
 
-Trunk (unreleased changes)
+Release 0.2.1 - Unreleased
+
+  NEW FEATURES
+
+  BUG FIXES
+
+  IMPROVEMENTS
+  
+    HAMA-369: Reduce overhead of local communications (Miklos Erdelyi via edwardyoon)
+    HAMA-371: Add a parameter to build.xml to allow developers deciding to reset content 
+                       in conf files or not when building artifacts (ChiaHung Lin via edwardyoon)
 
   NEW FEATURES
 
@@ -52,9 +62,6 @@ Trunk (unreleased changes)
 
   IMPROVEMENTS
  
-    HAMA-371: Add a parameter to build.xml to allow developers deciding to reset content 
-                       in conf files or not when building artifacts (ChiaHung Lin)
-    HAMA-369: Reduce overhead of local communications (Miklos Erdelyi)
     HAMA-366: Remove unnecessary dependencies (Tommaso Teofili)
     HAMA-365: TestBSPPeer doesn't check if the correct 
                        number of messages have been received (Miklos Erdelyi via edwardyoon)
