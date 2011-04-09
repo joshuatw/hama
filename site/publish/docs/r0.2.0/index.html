@@ -178,6 +178,31 @@ document.write("Last Published: " + document.lastModified);
 </li>
 <li>
 <a href="#Getting+Started"> Getting Started </a>
+<ul class="minitoc">
+<li>
+<a href="#Requirements">Requirements</a>
+</li>
+<li>
+<a href="#Startup+script">Startup script</a>
+</li>
+<li>
+<a href="#Configuration+files">Configuration files</a>
+<ul class="minitoc">
+<li>
+<a href="#Setting+up+Hama">Setting up Hama</a>
+</li>
+<li>
+<a href="#Starting+a+Hama+cluster">Starting a Hama cluster</a>
+</li>
+<li>
+<a href="#Stopping+a+Hama+cluster">Stopping a Hama cluster</a>
+</li>
+</ul>
+</li>
+<li>
+<a href="#Run+the+BSP+Examples">Run the BSP Examples</a>
+</li>
+</ul>
 </li>
 </ul>
 </div>
@@ -198,8 +223,9 @@ document.write("Last Published: " + document.lastModified);
 <a name="Getting+Started"></a>
 <h2 class="h3"> Getting Started </h2>
 <div class="section">
-<a name="Requirements"></a>
-<h3 id="Requirements">Requirements</h3>
+<p>Hama is a distributed computing framework based on BSP (Bulk Synchronous Parallel) computing techniques for massive scientific computations.</p>
+<a name="N10027"></a><a name="Requirements"></a>
+<h3 class="h4">Requirements</h3>
 <ul>
 
 <li>hadoop-0.20.x for HDFS</li>
@@ -207,9 +233,9 @@ document.write("Last Published: " + document.lastModified);
 <li>Sun Java JDK 1.6.x or higher version</li>
 
 </ul>
-<a name="Startup_script"></a>
-<h3 id="Startup_script">Startup script</h3>
-<i>$HAMA_HOME/bin</i>
+<a name="N10037"></a><a name="Startup+script"></a>
+<h3 class="h4">Startup script</h3>
+<p>The <i>$HAMA_HOME/bin</i> directory contains some script used to start up the Hama daemons.</p>
 <ul>
 
 <li>
@@ -218,9 +244,9 @@ document.write("Last Published: " + document.lastModified);
 </li>
 
 </ul>
-<a name="Configuration_files"></a>
-<h3 id="Configuration_files">Configuration files</h3>
-<i>$HAMA_HOME/conf</i>
+<a name="N1004D"></a><a name="Configuration+files"></a>
+<h3 class="h4">Configuration files</h3>
+<p>The <i>$HAMA_HOME/conf</i> directory contains some configuration files for Hama. These are:</p>
 <ul>
 
 <li>
@@ -247,11 +273,9 @@ This file should contain settings that must be respected by all servers and clie
 </li>
 
 </ul>
-<div class="line867">
-
-</div>
-<a name="Setting_up_Hama"></a>
-<h2 id="Setting_up_Hama">Setting up Hama</h2>
+<a name="N10077"></a><a name="Setting+up+Hama"></a>
+<h4>Setting up Hama</h4>
+<p>This section describes how to get started by setting up a Hama cluster.</p>
 <ul>
 
 <li>
@@ -262,6 +286,7 @@ Set the variable <i>fs.default.name</i> to the HDFS Namenode's intended host:por
 </li>
 
 </ul>
+<p>An example of a hama-site.xml file:</p>
 <pre style="background-color: #f3f5f7; border-bottom-color: rgb(174, 189, 204); border-bottom-style: solid; border-bottom-width: 1pt; border-left-color: rgb(174, 189, 204); border-left-style: solid; border-left-width: 1pt; border-right-color: rgb(174, 189, 204); border-right-style: solid; border-right-width: 1pt; border-top-color: rgb(174, 189, 204); border-top-style: solid; border-top-width: 1pt; font-family: courier, monospace; padding-bottom: 5pt; padding-left: 5pt; padding-right: 5pt; padding-top: 5pt; white-space: pre-wrap; word-wrap: break-word;">
 &lt;!--?xml version="1.0"?--&gt;
 &lt;!--?xml-stylesheet type="text/xsl" href="configuration.xsl"?--&gt;
@@ -296,18 +321,23 @@ Set the variable <i>fs.default.name</i> to the HDFS Namenode's intended host:por
   &lt;/property&gt;
 &lt;/configuration&gt;
 </pre>
-<a name="Starting_a_Hama_cluster"></a>
-<h4 id="Starting_a_Hama_cluster">Starting a Hama cluster</h4>
+<a name="N10097"></a><a name="Starting+a+Hama+cluster"></a>
+<h4>Starting a Hama cluster</h4>
+<p>Run the command:</p>
 <pre style="background-color: #f3f5f7; border-bottom-color: rgb(174, 189, 204); border-bottom-style: solid; border-bottom-width: 1pt; border-left-color: rgb(174, 189, 204); border-left-style: solid; border-left-width: 1pt; border-right-color: rgb(174, 189, 204); border-right-style: solid; border-right-width: 1pt; border-top-color: rgb(174, 189, 204); border-top-style: solid; border-top-width: 1pt; font-family: courier, monospace; padding-bottom: 5pt; padding-left: 5pt; padding-right: 5pt; padding-top: 5pt; white-space: pre-wrap; word-wrap: break-word;">
   # $HAMA_HOME/bin/start-bspd.sh
 </pre>
-<a name="Stopping_a_Hama_cluster"></a>
-<h4 id="Stopping_a_Hama_cluster">Stopping a Hama cluster</h4>
+<p>This will startup a BSPMaster, GroomServers and Zookeeper on your machine.</p>
+<a name="N100A8"></a><a name="Stopping+a+Hama+cluster"></a>
+<h4>Stopping a Hama cluster</h4>
+<p>Run the command:</p>
 <pre style="background-color: #f3f5f7; border-bottom-color: rgb(174, 189, 204); border-bottom-style: solid; border-bottom-width: 1pt; border-left-color: rgb(174, 189, 204); border-left-style: solid; border-left-width: 1pt; border-right-color: rgb(174, 189, 204); border-right-style: solid; border-right-width: 1pt; border-top-color: rgb(174, 189, 204); border-top-style: solid; border-top-width: 1pt; font-family: courier, monospace; padding-bottom: 5pt; padding-left: 5pt; padding-right: 5pt; padding-top: 5pt; white-space: pre-wrap; word-wrap: break-word;">
   # $HAMA_HOME/bin/stop-bspd.sh
 </pre>
-<a name="Run_the_BSP_Examples"></a>
-<h3 id="Run_the_BSP_Examples">Run the BSP Examples</h3>
+<p>to stop all the daemons running on your cluster.</p>
+<a name="N100BA"></a><a name="Run+the+BSP+Examples"></a>
+<h3 class="h4">Run the BSP Examples</h3>
+<p>Run the command:</p>
 <pre style="background-color: #f3f5f7; border-bottom-color: rgb(174, 189, 204); border-bottom-style: solid; border-bottom-width: 1pt; border-left-color: rgb(174, 189, 204); border-left-style: solid; border-left-width: 1pt; border-right-color: rgb(174, 189, 204); border-right-style: solid; border-right-width: 1pt; border-top-color: rgb(174, 189, 204); border-top-style: solid; border-top-width: 1pt; font-family: courier, monospace; padding-bottom: 5pt; padding-left: 5pt; padding-right: 5pt; padding-top: 5pt; white-space: pre-wrap; word-wrap: break-word;">
   # $HAMA_HOME/bin/hama jar hama-0.2.0-examples.jar pi or test
 </pre>
