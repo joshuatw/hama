@@ -5,7 +5,7 @@
 <meta content="Apache Forrest" name="Generator">
 <meta name="Forrest-version" content="0.8">
 <meta name="Forrest-skin-name" content="pelt">
-<title>Mailing Lists</title>
+<title>Apache Hama Downloads</title>
 <link type="text/css" href="skin/basic.css" rel="stylesheet">
 <link media="screen" type="text/css" href="skin/screen.css" rel="stylesheet">
 <link media="print" type="text/css" href="skin/print.css" rel="stylesheet">
@@ -102,13 +102,13 @@ document.write("Last Published: " + document.lastModified);
     |start Menu
     +-->
 <div id="menu">
-<div onclick="SwitchMenu('menu_1.1', 'skin/')" id="menu_1.1Title" class="menutitle">Home</div>
-<div id="menu_1.1" class="menuitemgroup">
+<div onclick="SwitchMenu('menu_selected_1.1', 'skin/')" id="menu_selected_1.1Title" class="menutitle" style="background-image: url('skin/images/chapter_open.gif');">Home</div>
+<div id="menu_selected_1.1" class="selectedmenuitemgroup" style="display: block;">
 <div class="menuitem">
 <a href="index.html">Overview</a>
 </div>
-<div class="menuitem">
-<a href="downloads.html">Downloads</a>
+<div class="menupage">
+<div class="menupagetitle">Downloads</div>
 </div>
 <div class="menuitem">
 <a href="who_we_are.html">Who we are?</a>
@@ -123,16 +123,16 @@ document.write("Last Published: " + document.lastModified);
 <a href="docs/r0.2.0/index.html">Release 0.2.0</a>
 </div>
 </div>
-<div onclick="SwitchMenu('menu_selected_1.3', 'skin/')" id="menu_selected_1.3Title" class="menutitle" style="background-image: url('skin/images/chapter_open.gif');">Resources</div>
-<div id="menu_selected_1.3" class="selectedmenuitemgroup" style="display: block;">
+<div onclick="SwitchMenu('menu_1.3', 'skin/')" id="menu_1.3Title" class="menutitle">Resources</div>
+<div id="menu_1.3" class="menuitemgroup">
 <div class="menuitem">
 <a href="developers.html">Developers</a>
 </div>
 <div class="menuitem">
 <a href="issue_tracking.html">Issue Tracking</a>
 </div>
-<div class="menupage">
-<div class="menupagetitle">Mailing Lists</div>
+<div class="menuitem">
+<a href="mailing_lists.html">Mailing Lists</a>
 </div>
 <div class="menuitem">
 <a href="irc_channel.html">IRC channel</a>
@@ -166,90 +166,64 @@ document.write("Last Published: " + document.lastModified);
     +-->
 <div id="content">
 <div title="Portable Document Format" class="pdflink">
-<a class="dida" href="mailing_lists.pdf"><img alt="PDF -icon" src="skin/images/pdfdoc.gif" class="skin"><br>
+<a class="dida" href="downloads.pdf"><img alt="PDF -icon" src="skin/images/pdfdoc.gif" class="skin"><br>
         PDF</a>
 </div>
-<h1>Mailing Lists</h1>
+<h1>Apache Hama Downloads</h1>
 <div id="minitoc-area">
 <ul class="minitoc">
 <li>
-<a href="#Hama+User+List">Hama User List</a>
+<a href="#Download">Download</a>
 </li>
 <li>
-<a href="#Hama+Developer+List">Hama Developer List</a>
-</li>
-<li>
-<a href="#Hama+Commit+List">Hama Commit List</a>
+<a href="#PGP+Signatures">PGP Signatures</a>
 </li>
 </ul>
 </div>
 
-    
-<a name="N1000D"></a><a name="Hama+User+List"></a>
-<h2 class="h3">Hama User List</h2>
+  
+<a name="N1000D"></a><a name="Download"></a>
+<h2 class="h3">Download</h2>
 <div class="section">
-<p>
-    If you use Hama, please subscribe to the Hama user mailing list.<br> 
-    The Hama user mailing list is : 
-    <a href="mailto:hama-user@incubator.apache.org">hama-user@incubator.apache.org</a>.
-    </p>
-<ul>
+<p>Use the links below to download Apache Hama releases from one of our mirrors. 
+    You should verify the integrity of the files using the signatures and checksums available from this page.
+    <br>
+<br>
+    Apache Hama releases are available under the 
+    <a href="http://www.apache.org/licenses/LICENSE-2.0">Apache License, Version 2.0</a>.
+    See the NOTICE.txt file contained in each release artifact for applicable copyright attribution notices.
+    <br>
+<br>
     
-<li>
-<a href="mailto:hama-user-subscribe@incubator.apache.org">Subscribe to List</a>
-</li>
+<a href="http://www.apache.org/dyn/closer.cgi/incubator/hama">Download a release now!</a>
     
-<li>
-<a href="mailto:hama-user-unsubscribe@incubator.apache.org">Unsubscribe from List</a>
-</li>
-    
-</ul>
+</p>
 </div>
     
-    
-<a name="N1002A"></a><a name="Hama+Developer+List"></a>
-<h2 class="h3">Hama Developer List</h2>
+  
+<a name="N10025"></a><a name="PGP+Signatures"></a>
+<h2 class="h3">PGP Signatures</h2>
 <div class="section">
-<p>
-    If you'd like to contribute to Hama, please subscribe to the Hama developer mailing list.<br> 
-    The Hama developer mailing list is : 
-    <a href="mailto:hama-dev@incubator.apache.org">hama-dev@incubator.apache.org</a>.
+<p>All of the release distribution package have been digitally signed (using PGP or GPG) by 
+    the Apache Group members that constructed them. There will be an accompanying distribution.asc file 
+    in the same directory as the distribution.
+    The PGP keys can be found in the MIT key repository (hkp://pgp.mit.edu), 
+    the OpenPGP Public Key repository (hkp://subkeys.pgp.net), and within this project's KEYS file, 
+    which is located within each download directory.
+    <br>
+<br>
+    Always use the signature files to verify the authenticity of the distribution, e.g.,
+    <pre>  % pgpk -a KEYS
+  % pgpv hama-x.x.x.tar.gz.asc</pre>
+    or,
+    <pre>  % gpg --import KEYS
+  % gpg --verify hama-x.x.x.tar.gz.asc</pre>
+    We offer MD5 hashes as an alternative to validate the integrity of the downloaded files.
+    A unix program called md5 or md5sum is included in many unix distributions.
+    It is also available as part of <a href="http://www.gnu.org/software/coreutils">GNU Core Utilities package</a>.
     </p>
-<ul>
-    
-<li>
-<a href="mailto:hama-dev-subscribe@incubator.apache.org">Subscribe to List</a>
-</li>
-    
-<li>
-<a href="mailto:hama-dev-unsubscribe@incubator.apache.org">Unsubscribe from List</a>
-</li>
-    
-</ul>
 </div>
-
-    
-<a name="N10047"></a><a name="Hama+Commit+List"></a>
-<h2 class="h3">Hama Commit List</h2>
-<div class="section">
-<p>
-    If you'd like to see changes made in Hama's version control system  then subscribe 
-    to the Hama commit mailing list.<br>
-    The Hama commit mailing list is : 
-    <a href="mailto:hama-commits@incubator.apache.org">hama-commits@incubator.apache.org</a>.
-    </p>
-<ul>
-    
-<li>
-<a href="mailto:hama-commits-subscribe@incubator.apache.org">Subscribe to List</a>
-</li>
-    
-<li>
-<a href="mailto:hama-commits-unsubscribe@incubator.apache.org">Unsubscribe from List</a>
-</li>
-    
-</ul>
-</div>
+  
   
 </div>
 <!--+
