@@ -24,7 +24,6 @@ GREP=/export/home/edwardyoon/tools/grep/bin/grep
 PATCH=/export/home/edwardyoon/tools/patch/bin/patch
 JIRA=/export/home/edwardyoon/tools/jira_cli/src/cli/jira
 FINDBUGS_HOME=/export/home/edwardyoon/tools/findbugs/latest
-FORREST_HOME=/home/hudson/tools/forrest/apache-forrest-0.8/
 MVN_HOME=/home/hudson/tools/maven/latest3
 
 ###############################################################################
