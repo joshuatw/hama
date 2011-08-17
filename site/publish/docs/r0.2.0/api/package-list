@@ -1,5 +1,0 @@
-org.apache.hama
-org.apache.hama.bsp
-org.apache.hama.ipc
-org.apache.hama.util
-org.apache.hama.zookeeper
