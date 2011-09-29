@@ -19,6 +19,7 @@
   <classpathentry kind="var" path="M2_REPO/geronimo-spec/geronimo-spec-jta/1.0.1B-rc4/geronimo-spec-jta-1.0.1B-rc4.jar"/>
   <classpathentry kind="var" path="M2_REPO/org/apache/hadoop/hadoop-core/0.20.2/hadoop-core-0.20.2.jar"/>
   <classpathentry kind="var" path="M2_REPO/org/apache/hadoop/hadoop-test/0.20.2/hadoop-test-0.20.2.jar"/>
+  <classpathentry kind="src" path="/hama-api"/>
   <classpathentry kind="src" path="/hama-core"/>
   <classpathentry kind="var" path="M2_REPO/hsqldb/hsqldb/1.8.0.10/hsqldb-1.8.0.10.jar"/>
   <classpathentry kind="var" path="M2_REPO/tomcat/jasper-compiler/5.5.12/jasper-compiler-5.5.12.jar"/>

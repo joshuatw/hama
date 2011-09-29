@@ -27,7 +27,7 @@ import org.apache.zookeeper.KeeperException;
 /**
  * BSP communication interface.
  */
-public interface BSPPeerInterface extends HamaRPCProtocolVersion, Closeable,
+public interface BSPPeer extends HamaRPCProtocolVersion, Closeable,
     Constants {
 
   /**

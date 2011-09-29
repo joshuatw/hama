@@ -46,6 +46,7 @@ public class PiEstimator {
     private String masterTask;
     private static final int iterations = 10000;
 
+    @Override
     public void bsp(BSPPeer bspPeer) throws IOException,
         KeeperException, InterruptedException {
       
@@ -88,10 +89,12 @@ public class PiEstimator {
       writer.close();
     }
 
+    @Override
     public Configuration getConf() {
       return conf;
     }
 
+    @Override
     public void setConf(Configuration conf) {
       this.conf = conf;
       this.masterTask = conf.get(MASTER_TASK);

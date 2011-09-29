@@ -42,6 +42,7 @@ public class ClassSerializePrinting {
     private FileSystem fileSys;
     private int num;
 
+    @Override
     public void bsp(BSPPeer bspPeer) throws IOException,
         KeeperException, InterruptedException {
 
@@ -67,10 +68,12 @@ public class ClassSerializePrinting {
       writer.close();
     }
 
+    @Override
     public Configuration getConf() {
       return conf;
     }
 
+    @Override
     public void setConf(Configuration conf) {
       this.conf = conf;
       num = Integer.parseInt(conf.get("bsp.peers.num"));

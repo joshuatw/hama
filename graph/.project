@@ -6,6 +6,7 @@
     We consider ourselves not simply a group of projects sharing a server, but rather a community of developers
     and users. NO_M2ECLIPSE_SUPPORT: Project files created with the maven-eclipse-plugin are not supported in M2Eclipse.</comment>
   <projects>
+    <project>hama-api</project>
     <project>hama-core</project>
   </projects>
   <buildSpec>

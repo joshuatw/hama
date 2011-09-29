@@ -17,35 +17,31 @@
  */
 package org.apache.hama.checkpoint;
 
-import java.io.BufferedReader;
+import static java.util.concurrent.TimeUnit.SECONDS;
+
 import java.io.DataInput;
 import java.io.DataInputStream;
 import java.io.EOFException;
-import java.io.InputStreamReader;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.util.Arrays;
-import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.Callable;
-import java.util.concurrent.Executors;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
-import static java.util.concurrent.TimeUnit.*;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicReference;
 
-import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.fs.FileSystem;
-import org.apache.hadoop.fs.FSDataOutputStream;
-import org.apache.hadoop.fs.Path;
-import org.apache.hama.bsp.BSPMessageBundle;
-import org.apache.hama.bsp.BSPPeer.BSPSerializableMessage;
-import org.apache.hama.GroomServerRunner;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.fs.FSDataOutputStream;
+import org.apache.hadoop.fs.FileSystem;
+import org.apache.hadoop.fs.Path;
+import org.apache.hama.bsp.BSPPeerImpl.BSPSerializableMessage;
 
 /**
  * This class is responsible for checkpointing messages to hdfs. 
