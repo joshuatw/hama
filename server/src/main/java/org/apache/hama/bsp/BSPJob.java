@@ -28,12 +28,18 @@ public interface BSPJob {
 	public enum JobState {
 		NEW, RUNNING, SUCCESS, FAILED, KILLED
 	}
+	
+	public enum BSPPhase{
+		COMPUTATION, COMMUNICATION 
+	}
 
 	BSPJobID getID();
 
 	String getName();
 
 	JobState getState();
+	
+	BSPPhase getBSPPhase();
 
 	Map<TaskAttemptID, Task> getTasks();
 

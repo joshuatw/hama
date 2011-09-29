@@ -65,4 +65,10 @@ public class BSPJobImpl implements BSPJob {
 		return null;
 	}
 
+	@Override
+	public BSPPhase getBSPPhase() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
 }
