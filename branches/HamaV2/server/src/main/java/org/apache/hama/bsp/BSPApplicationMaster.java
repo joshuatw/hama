@@ -17,10 +17,25 @@
  */
 package org.apache.hama.bsp;
 
+import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.yarn.api.records.ApplicationId;
+import org.apache.hadoop.yarn.ipc.YarnRPC;
+import org.apache.hadoop.yarn.util.Records;
+
 public class BSPApplicationMaster {
 
+	private Configuration conf;
+	private YarnRPC yarnRPC;
+	private ApplicationId appId;
+
+	private BSPApplicationMaster(String[] args) {
+		appId = Records.newRecord(ApplicationId.class);
+		conf = new Configuration();
+		yarnRPC = YarnRPC.create(conf);
+	}
+
 	public static void main(String[] args) {
-		
+		new BSPApplicationMaster(args);
 	}
 
 }
