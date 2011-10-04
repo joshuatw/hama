@@ -24,6 +24,7 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.BrokenBarrierException;
+import java.util.concurrent.Callable;
 import java.util.concurrent.CyclicBarrier;
 
 import org.apache.commons.logging.Log;
@@ -37,9 +38,8 @@ import org.apache.hama.bsp.TaskAttemptID;
 
 /**
  * Synchronization Deamon. <br\>
- * TODO Should be launched on the same host like the application master?
  */
-public class SyncServerImpl implements SyncServer {
+public class SyncServerImpl implements SyncServer, Callable<Long> {
 
 	private static final Log LOG = LogFactory.getLog(SyncServerImpl.class);
 
@@ -65,12 +65,20 @@ public class SyncServerImpl implements SyncServer {
 		this.partySet = Collections.synchronizedSet(new HashSet<Integer>(
 				parties));
 		this.peerAddresses = Collections.synchronizedSet(new HashSet<String>());
-		this.server = RPC.getServer(this, host, port, parties, false, conf);
+		// allocate ten more rpc handler than parties for additional services to
+		// plug in or to deal with failure.
+		this.server = RPC
+				.getServer(this, host, port, parties + 10, false, conf);
 		LOG.info("Sync Server is now up at: " + host + ":" + port + "!");
 	}
 
 	public void start() throws IOException {
 		server.start();
+	}
+
+	@Override
+	public void stopServer() {
+		server.stop();
 	}
 
 	public void join() throws InterruptedException {
@@ -175,6 +183,13 @@ public class SyncServerImpl implements SyncServer {
 							+ args.length + " and parameters were "
 							+ Arrays.toString(args));
 		}
+	}
+
+	@Override
+	public Long call() throws Exception {
+		this.start();
+		this.join();
+		return this.superstep;
 	}
 
 	@Override

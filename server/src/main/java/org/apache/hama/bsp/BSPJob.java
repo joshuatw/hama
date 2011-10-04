@@ -18,7 +18,8 @@
 package org.apache.hama.bsp;
 
 import java.util.Map;
-import org.apache.hadoop.fs.Path;
+
+import org.apache.hadoop.yarn.exceptions.YarnRemoteException;
 
 /**
  * Main interface to interact with the job. Provides only getters.
@@ -32,24 +33,18 @@ public interface BSPJob {
 	public enum BSPPhase{
 		COMPUTATION, COMMUNICATION 
 	}
-
-	BSPJobID getID();
-
-	String getName();
+	
+	public JobState startJob() throws Exception;
 
 	JobState getState();
 	
 	BSPPhase getBSPPhase();
 
+	// TODO are the tasks really needed?
 	Map<TaskAttemptID, Task> getTasks();
 
 	Task getTask(TaskAttemptID taskID);
 
 	int getTotalBSPTasks();
-
-	/**
-	 * @return a path to where the config file for this job is located.
-	 */
-	Path getConfFile();
 
 }

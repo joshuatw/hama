@@ -17,18 +17,166 @@
  */
 package org.apache.hama.bsp;
 
+import java.util.Collections;
+import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ExecutorCompletionService;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 
-import org.apache.hadoop.fs.Path;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.yarn.api.AMRMProtocol;
+import org.apache.hadoop.yarn.api.protocolrecords.AllocateRequest;
+import org.apache.hadoop.yarn.api.protocolrecords.AllocateResponse;
+import org.apache.hadoop.yarn.api.records.AMResponse;
+import org.apache.hadoop.yarn.api.records.ApplicationAttemptId;
+import org.apache.hadoop.yarn.api.records.Container;
+import org.apache.hadoop.yarn.api.records.ContainerId;
 import org.apache.hadoop.yarn.api.records.Priority;
 import org.apache.hadoop.yarn.api.records.Resource;
 import org.apache.hadoop.yarn.api.records.ResourceRequest;
+import org.apache.hadoop.yarn.exceptions.YarnRemoteException;
+import org.apache.hadoop.yarn.ipc.YarnRPC;
 import org.apache.hadoop.yarn.util.Records;
 
 public class BSPJobImpl implements BSPJob {
 
-	private ResourceRequest requestTasks(int numBSPTasks, int memoryInMb,
-			int priority) {
+	private static final Log LOG = LogFactory.getLog(BSPJobImpl.class);
+	private static final ExecutorService threadPool = Executors
+			.newCachedThreadPool();
+
+	private static final int DEFAULT_MEMORY_MB = 256;
+
+	private Configuration conf;
+	private int numBSPTasks;
+	private int priority = 0;
+	private String childOpts;
+	private int taskMemoryInMb;
+
+	private JobState state;
+	private BSPPhase phase;
+
+	private ApplicationAttemptId appAttemptId;
+	private YarnRPC yarnRPC;
+	private AMRMProtocol resourceManager;
+
+	private List<Container> allocatedContainers;
+	private List<ContainerId> releasedContainers = Collections.emptyList();
+
+	private ExecutorCompletionService<Integer> completionService = new ExecutorCompletionService<Integer>(
+			threadPool);
+
+	public BSPJobImpl(ApplicationAttemptId appAttemptId,
+			Configuration jobConfiguration, YarnRPC yarnRPC,
+			AMRMProtocol amrmRPC) {
+		super();
+		this.numBSPTasks = jobConfiguration.getInt("bsp.peers.num", 1);
+		this.appAttemptId = appAttemptId;
+		this.yarnRPC = yarnRPC;
+		this.resourceManager = amrmRPC;
+		this.state = JobState.NEW;
+		this.conf = jobConfiguration;
+		this.childOpts = conf.get("bsp.child.java.opts");
+
+		this.taskMemoryInMb = getMemoryRequirements();
+		LOG.info("Memory per task: " + taskMemoryInMb + "m!");
+	}
+
+	private int getMemoryRequirements() {
+		String newMemoryProperty = conf.get("bsp.child.mem.in.mb");
+		if (newMemoryProperty == null) {
+			LOG.warn("\"bsp.child.mem.in.mb\" was not set! Try parsing the child opts...");
+			return getMemoryFromOptString(childOpts);
+		} else {
+			return Integer.valueOf(newMemoryProperty);
+		}
+	}
+
+	// TODO This really needs a testcase
+	private int getMemoryFromOptString(String opts) {
+		if (!opts.contains("-Xmx")) {
+			LOG.info("No \"-Xmx\" option found in child opts, using default amount of memory!");
+			return DEFAULT_MEMORY_MB;
+		} else {
+			// e.G: -Xmx512m
+			int startIndex = opts.indexOf("-Xmx") + 4;
+			int endIndex = opts.indexOf(" ", startIndex);
+			String xmxString = opts.substring(startIndex, endIndex);
+			char qualifier = xmxString.charAt(xmxString.length() - 1);
+			int memory = Integer.valueOf(xmxString.substring(0,
+					xmxString.length() - 2));
+			if (qualifier == 'm') {
+				return memory;
+			} else if (qualifier == 'g') {
+				return memory * 1024;
+			} else {
+				throw new IllegalArgumentException(
+						"Memory Limit in child opts was not set! \"bsp.child.java.opts\" String was: "
+								+ opts);
+			}
+		}
+	}
+
+	@Override
+	public JobState startJob() throws YarnRemoteException, InterruptedException {
+
+		ResourceRequest request = createBSPTaskRequest(getTotalBSPTasks(),
+				taskMemoryInMb, priority);
+
+		AllocateRequest req = Records.newRecord(AllocateRequest.class);
+		// response id zero because this is our initial allocation
+		req.setResponseId(0);
+		// set ApplicationAttemptId
+		req.setApplicationAttemptId(appAttemptId);
+		// add our task request
+		req.addAsk(request);
+		// always an empty list
+		req.addAllReleases(releasedContainers);
+		// we don't have a real progress, so it is always zero
+		req.setProgress(0);
+
+		AllocateResponse allocateResponse = resourceManager.allocate(req);
+		AMResponse amResponse = allocateResponse.getAMResponse();
+		if (amResponse.getResponseId() == 0) {
+			this.allocatedContainers = amResponse.getAllocatedContainers();
+		} else {
+			LOG.error("Response IDs somehow did not match. Got: "
+					+ amResponse.getResponseId()
+					+ " where it should be 0 (zero).");
+			return JobState.FAILED;
+		}
+
+		for (Container allocatedContainer : allocatedContainers) {
+			LOG.info("Launching task on a new container." + ", containerId="
+					+ allocatedContainer.getId() + ", containerNode="
+					+ allocatedContainer.getNodeId().getHost() + ":"
+					+ allocatedContainer.getNodeId().getPort()
+					+ ", containerNodeURI="
+					+ allocatedContainer.getNodeHttpAddress()
+					+ ", containerState" + allocatedContainer.getState()
+					+ ", containerResourceMemory"
+					+ allocatedContainer.getResource().getMemory());
+
+			BSPTaskLauncher runnableLaunchContainer = new BSPTaskLauncher(
+					allocatedContainer, conf, yarnRPC);
+			completionService.submit(runnableLaunchContainer);
+		}
+
+		// TODO numBSPTasks could be wrong if we have to restart a task, use
+		// another field for that
+		for (int i = 0; i < numBSPTasks; i++) {
+			Future<Integer> returnedTask = completionService.take();
+			// TODO cleanup and check the return value
+		}
+
+		return JobState.SUCCESS;
+	}
+
+	private ResourceRequest createBSPTaskRequest(int numBSPTasks,
+			int memoryInMb, int priority) {
 		// Resource Request
 		ResourceRequest rsrcRequest = Records.newRecord(ResourceRequest.class);
 
@@ -56,26 +204,13 @@ public class BSPJobImpl implements BSPJob {
 	}
 
 	@Override
-	public BSPJobID getID() {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public String getName() {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
 	public JobState getState() {
-		// TODO Auto-generated method stub
-		return null;
+		return state;
 	}
 
 	@Override
 	public Map<TaskAttemptID, Task> getTasks() {
-		// TODO Auto-generated method stub
+		// TODO
 		return null;
 	}
 
@@ -87,20 +222,12 @@ public class BSPJobImpl implements BSPJob {
 
 	@Override
 	public int getTotalBSPTasks() {
-		// TODO Auto-generated method stub
-		return 0;
-	}
-
-	@Override
-	public Path getConfFile() {
-		// TODO Auto-generated method stub
-		return null;
+		return numBSPTasks;
 	}
 
 	@Override
 	public BSPPhase getBSPPhase() {
-		// TODO Auto-generated method stub
-		return null;
+		return phase;
 	}
 
 }
