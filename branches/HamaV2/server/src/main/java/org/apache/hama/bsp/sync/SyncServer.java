@@ -41,5 +41,7 @@ public interface SyncServer extends VersionedProtocol {
 	public String[] getAllPeerNames();
 	
 	public void deregisterFromBarrier(TaskAttemptID id, Text hostAddress, LongWritable port);
+	
+	public void stopServer();
 
 }

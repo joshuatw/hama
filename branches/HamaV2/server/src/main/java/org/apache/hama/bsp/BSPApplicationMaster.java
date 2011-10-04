@@ -21,12 +21,16 @@ import java.io.IOException;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.util.Map;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.ipc.RPC;
 import org.apache.hadoop.net.NetUtils;
 import org.apache.hadoop.yarn.Clock;
 import org.apache.hadoop.yarn.SystemClock;
@@ -42,6 +46,8 @@ import org.apache.hadoop.yarn.ipc.YarnRPC;
 import org.apache.hadoop.yarn.util.ConverterUtils;
 import org.apache.hadoop.yarn.util.Records;
 import org.apache.hama.HamaConfiguration;
+import org.apache.hama.bsp.sync.SyncServer;
+import org.apache.hama.bsp.sync.SyncServerImpl;
 import org.apache.mina.util.AvailablePortFinder;
 
 /**
@@ -51,6 +57,8 @@ public class BSPApplicationMaster {
 
 	private static final Log LOG = LogFactory
 			.getLog(BSPApplicationMaster.class);
+	private static final ExecutorService threadPool = Executors
+			.newFixedThreadPool(1);
 
 	private Configuration localConf;
 	private Configuration jobConf;
@@ -66,9 +74,16 @@ public class BSPApplicationMaster {
 	private String userName;
 	private long startTime;
 
+	private BSPJob job;
+
+	private SyncServerImpl syncServer;
+	private Future<Long> syncServerFuture;
+
 	// RPC info where the AM receive client side requests
 	private String hostname;
-	private int port;
+	private int clientPort;
+
+	private RegisterApplicationMasterResponse applicationMasterResponse;
 
 	private BSPApplicationMaster(String[] args) throws IOException {
 		if (args.length != 1) {
@@ -91,16 +106,52 @@ public class BSPApplicationMaster {
 		startTime = clock.getTime();
 
 		// TODO this is not localhost, is it?
-		// TODO this address of the client rpc server
-		hostname = InetAddress.getLocalHost().getHostName();
-		port = getFreePort();
+		hostname = InetAddress.getLocalHost().getCanonicalHostName();
+		startSyncServer();
+		clientPort = getFreePort();
 
-		amrmRPC = registerWithResourceManager(localConf, appAttemptId,
-				hostname, port, null);
+		amrmRPC = getYarnRPCConnection(localConf);
+		applicationMasterResponse = registerApplicationMaster(amrmRPC,
+				appAttemptId, hostname, clientPort, null);
 	}
 
+	/**
+	 * This method starts the sync server on a specific port and waits for it to
+	 * come up. Be aware that this method adds the "bsp.sync.server.address"
+	 * that is needed for a task to connect to the service.
+	 * 
+	 * @throws IOException
+	 */
+	private void startSyncServer() throws IOException {
+		int syncPort = getFreePort(15000);
+		syncServer = new SyncServerImpl(jobConf.getInt("bsp.peers.num", 1),
+				hostname, syncPort);
+		syncServerFuture = threadPool.submit(syncServer);
+		// wait for the RPC to come up
+		InetSocketAddress syncAddress = NetUtils.createSocketAddr(hostname
+				+ ":" + syncPort);
+		LOG.info("Waiting for the Sync Master at " + syncAddress);
+		RPC.waitForProxy(SyncServer.class, SyncServer.versionID, syncAddress,
+				jobConf);
+		jobConf.set("bsp.sync.server.address", hostname + ":" + syncPort);
+	}
+
+	/**
+	 * Uses Minas AvailablePortFinder to find a port, starting at 14000.
+	 * 
+	 * @return a free port.
+	 */
 	private int getFreePort() {
 		int startPort = 14000;
+		return getFreePort(startPort);
+	}
+
+	/**
+	 * Uses Minas AvailablePortFinder to find a port, starting at startPort.
+	 * 
+	 * @return a free port.
+	 */
+	private int getFreePort(int startPort) {
 		while (!AvailablePortFinder.available(startPort)) {
 			startPort++;
 			LOG.debug("Testing port for availability: " + startPort);
@@ -108,17 +159,32 @@ public class BSPApplicationMaster {
 		return startPort;
 	}
 
-	private AMRMProtocol registerWithResourceManager(Configuration yarnConf,
-			ApplicationAttemptId appAttemptID, String appMasterHostName,
-			int appMasterRpcPort, String appMasterTrackingUrl)
-			throws YarnRemoteException {
+	/**
+	 * Connects to the Resource Manager.
+	 * 
+	 * @param yarnConf
+	 * @return a new RPC connection to the Resource Manager.
+	 */
+	private AMRMProtocol getYarnRPCConnection(Configuration yarnConf) {
 		// Connect to the Scheduler of the ResourceManager.
 		InetSocketAddress rmAddress = NetUtils.createSocketAddr(yarnConf.get(
 				YarnConfiguration.RM_SCHEDULER_ADDRESS,
 				YarnConfiguration.DEFAULT_RM_SCHEDULER_ADDRESS));
 		LOG.info("Connecting to ResourceManager at " + rmAddress);
-		AMRMProtocol resourceManager = (AMRMProtocol) yarnRPC.getProxy(
-				AMRMProtocol.class, rmAddress, yarnConf);
+		return (AMRMProtocol) yarnRPC.getProxy(AMRMProtocol.class, rmAddress,
+				yarnConf);
+	}
+
+	/**
+	 * Registers this application master with the Resource Manager and retrieves
+	 * a response which is used to launch additional containers.
+	 * 
+	 * @throws YarnRemoteException
+	 */
+	private RegisterApplicationMasterResponse registerApplicationMaster(
+			AMRMProtocol resourceManager, ApplicationAttemptId appAttemptID,
+			String appMasterHostName, int appMasterRpcPort,
+			String appMasterTrackingUrl) throws YarnRemoteException {
 
 		RegisterApplicationMasterRequest appMasterRequest = Records
 				.newRecord(RegisterApplicationMasterRequest.class);
@@ -127,12 +193,11 @@ public class BSPApplicationMaster {
 		appMasterRequest.setRpcPort(appMasterRpcPort);
 		// TODO tracking URL
 		// appMasterRequest.setTrackingUrl(appMasterTrackingUrl);
-
 		RegisterApplicationMasterResponse response = resourceManager
 				.registerApplicationMaster(appMasterRequest);
 		LOG.debug("ApplicationMaster has maximum resource capability of: "
 				+ response.getMaximumResourceCapability().getMemory());
-		return resourceManager;
+		return response;
 	}
 
 	/**
@@ -159,8 +224,9 @@ public class BSPApplicationMaster {
 		return jobConf;
 	}
 
-	private void start() {
-
+	private void start() throws Exception {
+		job = new BSPJobImpl(appAttemptId, jobConf, yarnRPC, amrmRPC);
+		job.startJob();
 	}
 
 	public static void main(String[] args) {
