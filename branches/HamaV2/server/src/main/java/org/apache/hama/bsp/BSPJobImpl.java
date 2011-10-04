@@ -20,8 +20,40 @@ package org.apache.hama.bsp;
 import java.util.Map;
 
 import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.yarn.api.records.Priority;
+import org.apache.hadoop.yarn.api.records.Resource;
+import org.apache.hadoop.yarn.api.records.ResourceRequest;
+import org.apache.hadoop.yarn.util.Records;
 
 public class BSPJobImpl implements BSPJob {
+
+	private ResourceRequest requestTasks(int numBSPTasks, int memoryInMb,
+			int priority) {
+		// Resource Request
+		ResourceRequest rsrcRequest = Records.newRecord(ResourceRequest.class);
+
+		// setup requirements for hosts
+		// whether a particular rack/host is needed
+		// useful for applications that are sensitive
+		// to data locality
+		rsrcRequest.setHostName("*");
+
+		// set the priority for the request
+		Priority pri = Records.newRecord(Priority.class);
+		pri.setPriority(priority);
+		rsrcRequest.setPriority(pri);
+
+		// Set up resource type requirements
+		// For now, only memory is supported so we set memory requirements
+		Resource capability = Records.newRecord(Resource.class);
+		capability.setMemory(memoryInMb);
+		rsrcRequest.setCapability(capability);
+
+		// set no. of containers needed
+		// matching the specifications
+		rsrcRequest.setNumContainers(numBSPTasks);
+		return rsrcRequest;
+	}
 
 	@Override
 	public BSPJobID getID() {
