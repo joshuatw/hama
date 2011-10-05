@@ -18,10 +18,9 @@
 package org.apache.hama.bsp;
 
 import java.io.File;
-import java.io.IOException;
 import java.net.InetSocketAddress;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.concurrent.Callable;
 
 import org.apache.commons.logging.Log;
@@ -30,7 +29,6 @@ import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.net.NetUtils;
-import org.apache.hadoop.util.RunJar;
 import org.apache.hadoop.yarn.api.ContainerManager;
 import org.apache.hadoop.yarn.api.protocolrecords.GetContainerStatusRequest;
 import org.apache.hadoop.yarn.api.protocolrecords.StartContainerRequest;
@@ -38,8 +36,13 @@ import org.apache.hadoop.yarn.api.protocolrecords.StopContainerRequest;
 import org.apache.hadoop.yarn.api.records.Container;
 import org.apache.hadoop.yarn.api.records.ContainerLaunchContext;
 import org.apache.hadoop.yarn.api.records.ContainerState;
+import org.apache.hadoop.yarn.api.records.LocalResource;
+import org.apache.hadoop.yarn.api.records.LocalResourceType;
+import org.apache.hadoop.yarn.api.records.LocalResourceVisibility;
+import org.apache.hadoop.yarn.api.records.URL;
 import org.apache.hadoop.yarn.exceptions.YarnRemoteException;
 import org.apache.hadoop.yarn.ipc.YarnRPC;
+import org.apache.hadoop.yarn.util.ConverterUtils;
 import org.apache.hadoop.yarn.util.Records;
 import org.apache.hama.bsp.BSPTaskLauncher.BSPTaskStatus;
 
@@ -47,22 +50,21 @@ public class BSPTaskLauncher implements Callable<BSPTaskStatus> {
 
   private static final Log LOG = LogFactory.getLog(BSPTaskLauncher.class);
 
-  private static final String SYSTEM_PATH_SEPARATOR = System
-      .getProperty("path.separator");
-
   private final Container allocatedContainer;
   private final ContainerManager cm;
   private final Path jobFile;
   private final String user;
   private final Configuration conf;
   private final int id;
+  private final BSPJobID jobId;
 
-  public BSPTaskLauncher(int id, Container container, Configuration conf,
-      YarnRPC rpc, Path jobFile) throws YarnRemoteException {
+  public BSPTaskLauncher(BSPJobID jobId, int id, Container container,
+      Configuration conf, YarnRPC rpc, Path jobFile) throws YarnRemoteException {
     this.id = id;
     this.jobFile = jobFile;
     this.user = conf.get("user.name");
     this.conf = conf;
+    this.jobId = jobId;
     this.allocatedContainer = container;
     // Connect to ContainerManager on the allocated container
     String cmIpPortStr = container.getNodeId().getHost() + ":"
@@ -70,17 +72,9 @@ public class BSPTaskLauncher implements Callable<BSPTaskStatus> {
     InetSocketAddress cmAddress = NetUtils.createSocketAddr(cmIpPortStr);
     cm = (ContainerManager) rpc.getProxy(ContainerManager.class, cmAddress,
         conf);
-    LOG.info("Spawned task with id: " + this.id + " for allocated container id: "
+    LOG.info("Spawned task with id: " + this.id
+        + " for allocated container id: "
         + this.allocatedContainer.getId().toString());
-  }
-
-  private File createWorkDirectory(Path jobFile) {
-    File workDir = new File(jobFile.getParent().toString(), "work");
-    boolean isCreated = workDir.mkdirs();
-    if (isCreated) {
-      LOG.info("TaskRunner.workDir : " + workDir);
-    }
-    return workDir;
   }
 
   @Override
@@ -95,66 +89,6 @@ public class BSPTaskLauncher implements Callable<BSPTaskStatus> {
     cm.stopContainer(stopRequest);
   }
 
-  private List<String> buildJvmArgs(Configuration jobConf, String classPath,
-      Class<?> child) throws IOException {
-    // Build exec child jmv args.
-    List<String> vargs = new ArrayList<String>();
-    File jvm = // use same jvm as parent
-    new File(new File(System.getProperty("java.home"), "bin"), "java");
-    vargs.add(jvm.toString());
-
-    // bsp.child.java.opts
-    String javaOpts = jobConf.get("bsp.child.mem.in.mb", "-Xmx256m");
-    javaOpts += " " + jobConf.get("bsp.child.java.opts", "");
-
-    String[] javaOptsSplit = javaOpts.split(" ");
-    for (int i = 0; i < javaOptsSplit.length; i++) {
-      vargs.add(javaOptsSplit[i]);
-    }
-
-    // Add classpath.
-    vargs.add("-classpath");
-    vargs.add(classPath.toString());
-    // Add main class and its arguments
-    LOG.debug("Executing child Process " + child.getName());
-    vargs.add(child.getName()); // main of bsppeer
-    vargs.add(id +"");
-    vargs.add(jobConf.get("bsp.sync.server.address"));
-    vargs.add(this.jobFile.makeQualified(FileSystem.get(conf)).toString());
-
-    return vargs;
-  }
-
-  // TODO for jars should use the containers methods
-  private String assembleClasspath(Configuration jobConf, File workDir) {
-    StringBuffer classPath = new StringBuffer();
-    // start with same classpath as parent process
-    classPath.append(System.getProperty("java.class.path"));
-    classPath.append(SYSTEM_PATH_SEPARATOR);
-
-    String jar = jobConf.get("bsp.jar");
-    if (jar != null) { // if jar exists, it into workDir
-      try {
-        RunJar.unJar(new File(jar), workDir);
-      } catch (IOException ioe) {
-        LOG.error("Unable to uncompressing file to " + workDir.toString(), ioe);
-      }
-      File[] libs = new File(workDir, "lib").listFiles();
-      if (libs != null) {
-        for (int i = 0; i < libs.length; i++) {
-          // add libs from jar to classpath
-          classPath.append(SYSTEM_PATH_SEPARATOR);
-          classPath.append(libs[i]);
-        }
-      }
-      classPath.append(SYSTEM_PATH_SEPARATOR);
-      classPath.append(new File(workDir, "classes"));
-      classPath.append(SYSTEM_PATH_SEPARATOR);
-      classPath.append(workDir);
-    }
-    return classPath.toString();
-  }
-
   @Override
   public BSPTaskStatus call() throws Exception {
     // Now we setup a ContainerLaunchContext
@@ -165,13 +99,22 @@ public class BSPTaskLauncher implements Callable<BSPTaskStatus> {
     ctx.setResource(allocatedContainer.getResource());
     ctx.setUser(user);
 
-    File workDir = createWorkDirectory(jobFile);
-    String classPath = assembleClasspath(conf, workDir);
-    LOG.info("Spawned child's classpath " + classPath);
-    List<String> bspArgs = buildJvmArgs(conf, classPath,
-        BSPPeerImpl.class);
+    LocalResource packageResource = Records.newRecord(LocalResource.class);
+    File packageFile = new File(conf.get("bsp.jar"));
+    URL packageUrl = ConverterUtils.getYarnUrlFromPath(new Path(conf
+        .get("bsp.jar")));
 
-    ctx.setCommands(bspArgs);
+    packageResource.setResource(packageUrl);
+    packageResource.setSize(packageFile.length());
+    packageResource.setTimestamp(packageFile.lastModified());
+    packageResource.setType(LocalResourceType.ARCHIVE);
+    packageResource.setVisibility(LocalResourceVisibility.APPLICATION);
+
+    ctx.setCommands(Arrays.asList("java -cp './package/*' ",
+        BSPTaskLauncher.class.getCanonicalName(), jobId.getJtIdentifier(), id
+            + "", this.jobFile.makeQualified(FileSystem.get(conf)).toString()));
+    ctx.setLocalResources(Collections.singletonMap("package", packageResource));
+
     StartContainerRequest startReq = Records
         .newRecord(StartContainerRequest.class);
     startReq.setContainerLaunchContext(ctx);

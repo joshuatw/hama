@@ -48,7 +48,6 @@ import org.apache.hama.Constants;
 import org.apache.hama.bsp.sync.SyncServer;
 import org.apache.hama.bsp.sync.SyncServerImpl;
 import org.apache.hama.checkpoint.CheckpointRunner;
-import org.apache.hama.ipc.BSPPeerProtocol;
 
 /**
  * This class represents a BSP peer.
@@ -71,9 +70,7 @@ public class BSPPeerImpl implements BSPPeer {
   private TaskStatus currentTaskStatus;
 
   private TaskAttemptID taskid;
-  private BSPPeerProtocol umbilical;
   private SyncServer syncService;
-
   private final BSPMessageSerializer messageSerializer;
 
   public static final class BSPSerializableMessage implements Writable {
@@ -184,14 +181,12 @@ public class BSPPeerImpl implements BSPPeer {
    * BSPPeer acts on behalf of clients performing bsp() tasks.
    * 
    * @param conf is the configuration file containing bsp peer host, port, etc.
-   * @param umbilical is the bsp protocol used to contact its parent process.
    * @param taskid is the id that current process holds.
    */
-  public BSPPeerImpl(Configuration conf, TaskAttemptID taskid,
-      BSPPeerProtocol umbilical) throws IOException {
+  public BSPPeerImpl(Configuration conf, TaskAttemptID taskid)
+      throws IOException {
     this.conf = conf;
     this.taskid = taskid;
-    this.umbilical = umbilical;
 
     String bindAddress = conf.get(Constants.PEER_HOST,
         Constants.DEFAULT_PEER_HOST);
@@ -292,7 +287,7 @@ public class BSPPeerImpl implements BSPPeer {
         try {
           peer = getBSPPeerConnection(entry.getKey());
         } catch (NullPointerException ne) {
-          umbilical.fatalError(taskid, entry.getKey().getHostName()
+          LOG.error(taskid + ": " + entry.getKey().getHostName()
               + " doesn't exists.");
         }
       }
@@ -313,7 +308,6 @@ public class BSPPeerImpl implements BSPPeer {
 
     leaveBarrier();
     currentTaskStatus.incrementSuperstepCount();
-    umbilical.statusUpdate(taskid, currentTaskStatus);
 
     // Clear outgoing queues.
     clearOutgoingQueues();
@@ -385,8 +379,8 @@ public class BSPPeerImpl implements BSPPeer {
 
       if (peer == null) {
         try {
-          peer = (BSPPeer) RPC.getProxy(BSPPeer.class,
-              BSPPeer.versionID, addr, this.conf);
+          peer = (BSPPeer) RPC.getProxy(BSPPeer.class, BSPPeer.versionID, addr,
+              this.conf);
         } catch (IOException e) {
           LOG.error(e);
         }
@@ -395,18 +389,6 @@ public class BSPPeerImpl implements BSPPeer {
     }
 
     return peer;
-  }
-  
-  /**
-   * TODO
-   * Main entry point after a container has launched.
-   * @param args
-   */
-  public static void main(String[] args) {
-    // id is the first of the args (int)
-    // host:port pair of the sync service is the second arg (string)
-    // third arg is the qualified path of the job configuration
-    
   }
 
   /**
@@ -460,6 +442,13 @@ public class BSPPeerImpl implements BSPPeer {
    */
   public int getLocalQueueSize() {
     return localQueue.size();
+  }
+
+  /**
+   * @return the sync service
+   */
+  public SyncServer getSyncService() {
+    return syncService;
   }
 
   /**
