@@ -54,6 +54,7 @@ public class BSPJobImpl implements BSPJob {
   private static final int DEFAULT_MEMORY_MB = 256;
 
   private Configuration conf;
+  private BSPJobID jobId;
   private int numBSPTasks;
   private int priority = 0;
   private String childOpts;
@@ -76,7 +77,7 @@ public class BSPJobImpl implements BSPJob {
 
   public BSPJobImpl(ApplicationAttemptId appAttemptId,
       Configuration jobConfiguration, YarnRPC yarnRPC, AMRMProtocol amrmRPC,
-      String jobFile) {
+      String jobFile, BSPJobID jobId) {
     super();
     this.numBSPTasks = jobConfiguration.getInt("bsp.peers.num", 1);
     this.appAttemptId = appAttemptId;
@@ -84,6 +85,7 @@ public class BSPJobImpl implements BSPJob {
     this.resourceManager = amrmRPC;
     this.jobFile = new Path(jobFile);
     this.state = JobState.NEW;
+    this.jobId = jobId;
     this.conf = jobConfiguration;
     this.childOpts = conf.get("bsp.child.java.opts");
 
@@ -168,7 +170,7 @@ public class BSPJobImpl implements BSPJob {
           + allocatedContainer.getState() + ", containerResourceMemory"
           + allocatedContainer.getResource().getMemory());
 
-      BSPTaskLauncher runnableLaunchContainer = new BSPTaskLauncher(id,
+      BSPTaskLauncher runnableLaunchContainer = new BSPTaskLauncher(jobId, id,
           allocatedContainer, conf, yarnRPC, jobFile);
       launchers.put(id, runnableLaunchContainer);
       completionService.submit(runnableLaunchContainer);

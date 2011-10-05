@@ -72,6 +72,7 @@ public class BSPApplicationMaster {
   private long startTime;
 
   private BSPJob job;
+  private BSPJobID jobId;
 
   private SyncServerImpl syncServer;
   private Future<Long> syncServerFuture;
@@ -97,14 +98,15 @@ public class BSPApplicationMaster {
     clock = new SystemClock();
     startTime = clock.getTime();
 
+    jobId = new BSPJobID(appAttemptId.toString(), 0);
+
     // TODO this is not localhost, is it?
     hostname = InetAddress.getLocalHost().getCanonicalHostName();
     startSyncServer();
     clientPort = getFreePort();
 
     amrmRPC = getYarnRPCConnection(localConf);
-    registerApplicationMaster(amrmRPC,
-        appAttemptId, hostname, clientPort, null);
+    registerApplicationMaster(amrmRPC, appAttemptId, hostname, clientPort, null);
   }
 
   /**
@@ -189,7 +191,7 @@ public class BSPApplicationMaster {
   private void start() throws Exception {
     JobState finalState = null;
     try {
-      job = new BSPJobImpl(appAttemptId, jobConf, yarnRPC, amrmRPC, jobFile);
+      job = new BSPJobImpl(appAttemptId, jobConf, yarnRPC, amrmRPC, jobFile, jobId);
       finalState = job.startJob();
     } finally {
       if (finalState != null) {
