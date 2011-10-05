@@ -17,34 +17,30 @@
  */
 package org.apache.hama.bsp;
 
-import java.util.Map;
-
 import org.apache.hadoop.yarn.exceptions.YarnRemoteException;
+
 
 /**
  * Main interface to interact with the job. Provides only getters.
  */
 public interface BSPJob {
 
-	public enum JobState {
-		NEW, RUNNING, SUCCESS, FAILED, KILLED
-	}
-	
-	public enum BSPPhase{
-		COMPUTATION, COMMUNICATION 
-	}
-	
-	public JobState startJob() throws Exception;
+  public enum JobState {
+    NEW, RUNNING, SUCCESS, FAILED, KILLED
+  }
 
-	JobState getState();
-	
-	BSPPhase getBSPPhase();
+  public enum BSPPhase {
+    COMPUTATION, COMMUNICATION
+  }
 
-	// TODO are the tasks really needed?
-	Map<TaskAttemptID, Task> getTasks();
+  public JobState startJob() throws Exception;
+  
+  public void cleanup() throws YarnRemoteException;
 
-	Task getTask(TaskAttemptID taskID);
+  JobState getState();
 
-	int getTotalBSPTasks();
+  BSPPhase getBSPPhase();
+
+  int getTotalBSPTasks();
 
 }
