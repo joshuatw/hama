@@ -23,7 +23,7 @@ import org.apache.hadoop.yarn.exceptions.YarnRemoteException;
 /**
  * Main interface to interact with the job. Provides only getters.
  */
-public interface BSPJob {
+public interface Job {
 
   public enum JobState {
     NEW, RUNNING, SUCCESS, FAILED, KILLED

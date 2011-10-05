@@ -45,9 +45,9 @@ import org.apache.hadoop.yarn.ipc.YarnRPC;
 import org.apache.hadoop.yarn.util.Records;
 import org.apache.hama.bsp.BSPTaskLauncher.BSPTaskStatus;
 
-public class BSPJobImpl implements BSPJob {
+public class JobImpl implements Job {
 
-  private static final Log LOG = LogFactory.getLog(BSPJobImpl.class);
+  private static final Log LOG = LogFactory.getLog(JobImpl.class);
   private static final ExecutorService threadPool = Executors
       .newCachedThreadPool();
 
@@ -75,7 +75,7 @@ public class BSPJobImpl implements BSPJob {
       threadPool);
   private Map<Integer, BSPTaskLauncher> launchers = new HashMap<Integer, BSPTaskLauncher>();
 
-  public BSPJobImpl(ApplicationAttemptId appAttemptId,
+  public JobImpl(ApplicationAttemptId appAttemptId,
       Configuration jobConfiguration, YarnRPC yarnRPC, AMRMProtocol amrmRPC,
       String jobFile, BSPJobID jobId) {
     super();

@@ -17,7 +17,6 @@
  */
 package org.apache.hama.bsp;
 
-import java.io.File;
 import java.net.InetSocketAddress;
 import java.util.Arrays;
 import java.util.Collections;
@@ -26,9 +25,11 @@ import java.util.concurrent.Callable;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.net.NetUtils;
+import org.apache.hadoop.yarn.api.ApplicationConstants;
 import org.apache.hadoop.yarn.api.ContainerManager;
 import org.apache.hadoop.yarn.api.protocolrecords.GetContainerStatusRequest;
 import org.apache.hadoop.yarn.api.protocolrecords.StartContainerRequest;
@@ -100,19 +101,23 @@ public class BSPTaskLauncher implements Callable<BSPTaskStatus> {
     ctx.setUser(user);
 
     LocalResource packageResource = Records.newRecord(LocalResource.class);
-    File packageFile = new File(conf.get("bsp.jar"));
+    FileSystem fs = FileSystem.get(conf);
+    Path packageFile = new Path(conf.get("bsp.jar"));
     URL packageUrl = ConverterUtils.getYarnUrlFromPath(new Path(conf
         .get("bsp.jar")));
 
+    FileStatus fileStatus = fs.getFileStatus(packageFile);
     packageResource.setResource(packageUrl);
-    packageResource.setSize(packageFile.length());
-    packageResource.setTimestamp(packageFile.lastModified());
+    packageResource.setSize(fileStatus.getLen());
+    packageResource.setTimestamp(fileStatus.getModificationTime());
     packageResource.setType(LocalResourceType.ARCHIVE);
     packageResource.setVisibility(LocalResourceVisibility.APPLICATION);
 
-    ctx.setCommands(Arrays.asList("java -cp './package/*' ",
+    ctx.setCommands(Arrays.asList("${JAVA_HOME}" + "/bin/java -cp './package/*' ",
         BSPTaskLauncher.class.getCanonicalName(), jobId.getJtIdentifier(), id
-            + "", this.jobFile.makeQualified(FileSystem.get(conf)).toString()));
+            + "", this.jobFile.makeQualified(FileSystem.get(conf)).toString(),
+        " 1>" + ApplicationConstants.LOG_DIR_EXPANSION_VAR + "/stdout", " 2>"
+            + ApplicationConstants.LOG_DIR_EXPANSION_VAR + "/stderr"));
     ctx.setLocalResources(Collections.singletonMap("package", packageResource));
 
     StartContainerRequest startReq = Records
