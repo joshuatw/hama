@@ -149,16 +149,20 @@ public class JobImpl implements Job {
 
     AllocateResponse allocateResponse = resourceManager.allocate(req);
     AMResponse amResponse = allocateResponse.getAMResponse();
-    if (amResponse.getResponseId() == 0) {
+    LOG.info("Got response! ID: " + amResponse.getResponseId()
+        + " with num of containers: "
+        + amResponse.getAllocatedContainers().size());
+    // somehow the response id is always incremented
+    if (amResponse.getResponseId() == 1) {
       this.allocatedContainers = amResponse.getAllocatedContainers();
     } else {
       LOG.error("Response IDs somehow did not match. Got: "
-          + amResponse.getResponseId() + " where it should be 0 (zero).");
+          + amResponse.getResponseId() + " where it should be 1 (one).");
       state = JobState.FAILED;
       return state;
     }
 
-    int launchedBSPTasks = numBSPTasks;
+    int launchedBSPTasks = 0;
 
     int id = 0;
     for (Container allocatedContainer : allocatedContainers) {
@@ -175,6 +179,7 @@ public class JobImpl implements Job {
       launchers.put(id, runnableLaunchContainer);
       completionService.submit(runnableLaunchContainer);
       id++;
+      launchedBSPTasks++;
     }
     state = JobState.RUNNING;
 

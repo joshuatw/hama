@@ -60,20 +60,21 @@ public class YarnSerializePrinting {
     public void setConf(Configuration conf) {
       this.conf = conf;
     }
+  }
 
-    public static void main(String[] args) throws IOException, InterruptedException, ClassNotFoundException {
-      HamaConfiguration conf = new HamaConfiguration();
-      // TODO some keys that should be within a conf 
-      conf.set("yarn.resourcemanager.address", "0.0.0.0:8040");
-      conf.set("bsp.local.dir","/tmp/bsp-yarn/");
-      YARNBSPJob job = new YARNBSPJob(conf);
-      job.setBspClass(HelloBSP.class);
-      job.setJarByClass(HelloBSP.class);
-      job.setJobName("Serialize Printing");
-      job.setMemoryUsedPerTaskInMb(50);
-      job.setNumBspTask(3);
-      job.waitForCompletion(true);
-    }
-
+  public static void main(String[] args) throws IOException,
+      InterruptedException, ClassNotFoundException {
+    HamaConfiguration conf = new HamaConfiguration();
+    // TODO some keys that should be within a conf
+    conf.set("yarn.resourcemanager.address", "0.0.0.0:8040");
+    conf.set("bsp.local.dir", "/tmp/bsp-yarn/");
+    YARNBSPJob job = new YARNBSPJob(conf);
+    job.setBspClass(HelloBSP.class);
+    job.setJarByClass(HelloBSP.class);
+    job.setJobName("Serialize Printing");
+    job.setMemoryUsedPerTaskInMb(512);
+    job.setNumBspTask(3);
+    // TODO true throws exceptions
+    job.waitForCompletion(false);
   }
 }

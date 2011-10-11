@@ -206,6 +206,9 @@ public class BSPApplicationMaster implements BSPClient {
       job = new JobImpl(appAttemptId, jobConf, yarnRPC, amrmRPC, jobFile, jobId);
       finalState = job.startJob();
     } finally {
+      if (this.syncServer != null) {
+        this.syncServer.stopServer();
+      }
       if (finalState != null) {
         LOG.info("Job \"" + applicationName + "\"'s state after completion: "
             + finalState.toString());
