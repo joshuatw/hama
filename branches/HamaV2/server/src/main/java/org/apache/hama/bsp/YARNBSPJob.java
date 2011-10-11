@@ -42,9 +42,9 @@ import org.apache.hadoop.yarn.api.protocolrecords.KillApplicationRequest;
 import org.apache.hadoop.yarn.api.protocolrecords.SubmitApplicationRequest;
 import org.apache.hadoop.yarn.api.records.ApplicationId;
 import org.apache.hadoop.yarn.api.records.ApplicationReport;
-import org.apache.hadoop.yarn.api.records.ApplicationState;
 import org.apache.hadoop.yarn.api.records.ApplicationSubmissionContext;
 import org.apache.hadoop.yarn.api.records.ContainerLaunchContext;
+import org.apache.hadoop.yarn.api.records.FinalApplicationStatus;
 import org.apache.hadoop.yarn.api.records.LocalResource;
 import org.apache.hadoop.yarn.api.records.LocalResourceType;
 import org.apache.hadoop.yarn.api.records.LocalResourceVisibility;
@@ -142,7 +142,8 @@ public class YARNBSPJob extends BSPJob {
     Path jarPath = new Path(getWorkingDirectory(), id + "/app.jar");
     fs.copyFromLocalFile(this.getLocalPath(this.getJar()), jarPath);
     LOG.info("Copying app jar to " + jarPath);
-    conf.set("bsp.jar", jarPath.makeQualified(fs).toString());
+    conf.set("bsp.jar",
+        jarPath.makeQualified(fs.getUri(), fs.getWorkingDirectory()).toString());
     FileStatus jarStatus = fs.getFileStatus(jarPath);
     LocalResource amJarRsrc = Records.newRecord(LocalResource.class);
     amJarRsrc.setType(LocalResourceType.FILE);
@@ -175,12 +176,17 @@ public class YARNBSPJob extends BSPJob {
     out.close();
 
     // Construct the command to be executed on the launched container
-    String command = "${JAVA_HOME}" + "/bin/java -cp " + classPathEnv + " "
-        + BSPApplicationMaster.class.getCanonicalName() + " "
-        + xmlPath.makeQualified(fs).toString() + " 1>"
-        + ApplicationConstants.LOG_DIR_EXPANSION_VAR + "/stdout" + " 2>"
-        + ApplicationConstants.LOG_DIR_EXPANSION_VAR + "/stderr";
-    
+    String command = "${JAVA_HOME}"
+        + "/bin/java -cp "
+        + classPathEnv
+        + " "
+        + BSPApplicationMaster.class.getCanonicalName()
+        + " "
+        + xmlPath.makeQualified(fs.getUri(), fs.getWorkingDirectory())
+            .toString() + " 1>" + ApplicationConstants.LOG_DIR_EXPANSION_VAR
+        + "/stdout" + " 2>" + ApplicationConstants.LOG_DIR_EXPANSION_VAR
+        + "/stderr";
+
     LOG.info("Start command: " + command);
 
     amContainer.setCommands(Collections.singletonList(command));
@@ -209,22 +215,22 @@ public class YARNBSPJob extends BSPJob {
     GetApplicationReportResponse reportResponse = applicationsManager
         .getApplicationReport(reportRequest);
     report = reportResponse.getApplicationReport();
-    LOG.info("Got report: " + report.getApplicationId() + " " + report.getHost());
+    LOG.info("Got report: " + report.getApplicationId() + " "
+        + report.getHost());
     submitted = true;
   }
 
   @Override
   public boolean waitForCompletion(boolean verbose) throws IOException,
       InterruptedException, ClassNotFoundException {
-    
+
     LOG.info("Starting job...");
-    
+
     if (!submitted) {
       this.submit();
     }
 
-    client = (BSPClient) RPC.waitForProxy(BSPClient.class,
-        BSPClient.VERSION,
+    client = (BSPClient) RPC.waitForProxy(BSPClient.class, BSPClient.VERSION,
         NetUtils.createSocketAddr(report.getHost(), report.getRpcPort()), conf);
 
     GetApplicationReportRequest reportRequest = Records
@@ -236,7 +242,10 @@ public class YARNBSPJob extends BSPJob {
     ApplicationReport localReport = reportResponse.getApplicationReport();
     long clientSuperStep = 0L;
     // TODO this may cause infinite loops, we can go with our rpc client
-    while (localReport.getState() == ApplicationState.RUNNING) {
+    while (localReport.getFinalApplicationStatus() != null
+        && localReport.getFinalApplicationStatus() != FinalApplicationStatus.FAILED
+        && localReport.getFinalApplicationStatus() != FinalApplicationStatus.KILLED
+        && localReport.getFinalApplicationStatus() != FinalApplicationStatus.SUCCEEDED) {
       if (verbose) {
         long remoteSuperStep = client.getCurrentSuperStep().get();
         if (clientSuperStep > remoteSuperStep) {
@@ -253,12 +262,12 @@ public class YARNBSPJob extends BSPJob {
     reportResponse = applicationsManager.getApplicationReport(reportRequest);
     localReport = reportResponse.getApplicationReport();
 
-    if (localReport.getState() == ApplicationState.SUCCEEDED) {
+    if (localReport.getFinalApplicationStatus() == FinalApplicationStatus.SUCCEEDED) {
       LOG.info("Job succeeded!");
       return true;
     } else {
-      LOG.info("Job failed with status: " + localReport.getState().toString()
-          + "!");
+      LOG.info("Job failed with status: "
+          + localReport.getFinalApplicationStatus().toString() + "!");
       return false;
     }
 

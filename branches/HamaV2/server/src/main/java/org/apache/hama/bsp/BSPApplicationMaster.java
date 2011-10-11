@@ -30,6 +30,7 @@ import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.LongWritable;
+import org.apache.hadoop.ipc.ProtocolSignature;
 import org.apache.hadoop.ipc.RPC;
 import org.apache.hadoop.ipc.RPC.Server;
 import org.apache.hadoop.net.NetUtils;
@@ -41,6 +42,7 @@ import org.apache.hadoop.yarn.api.protocolrecords.FinishApplicationMasterRequest
 import org.apache.hadoop.yarn.api.protocolrecords.RegisterApplicationMasterRequest;
 import org.apache.hadoop.yarn.api.protocolrecords.RegisterApplicationMasterResponse;
 import org.apache.hadoop.yarn.api.records.ApplicationAttemptId;
+import org.apache.hadoop.yarn.api.records.FinalApplicationStatus;
 import org.apache.hadoop.yarn.conf.YarnConfiguration;
 import org.apache.hadoop.yarn.exceptions.YarnRemoteException;
 import org.apache.hadoop.yarn.ipc.YarnRPC;
@@ -55,7 +57,7 @@ import org.apache.mina.util.AvailablePortFinder;
 /**
  * BSPApplicationMaster is an application master for Apache Hamas BSP Engine.
  */
-public class BSPApplicationMaster implements BSPClient{
+public class BSPApplicationMaster implements BSPClient {
 
   private static final Log LOG = LogFactory.getLog(BSPApplicationMaster.class);
   private static final ExecutorService threadPool = Executors
@@ -82,7 +84,7 @@ public class BSPApplicationMaster implements BSPClient{
   // RPC info where the AM receive client side requests
   private String hostname;
   private int clientPort;
-  
+
   private Server clientServer;
 
   private BSPApplicationMaster(String[] args) throws IOException {
@@ -95,7 +97,7 @@ public class BSPApplicationMaster implements BSPClient{
     jobConf = getSubmitConfiguration(jobFile);
 
     applicationName = jobConf.get("bsp.job.name", "<no bsp job name defined>");
-    if(applicationName.isEmpty()){
+    if (applicationName.isEmpty()) {
       applicationName = "<no bsp job name defined>";
     }
 
@@ -112,7 +114,8 @@ public class BSPApplicationMaster implements BSPClient{
     startSyncServer();
     clientPort = getFreePort();
     // TODO should have a configurable amount of RPC handlers
-    this.clientServer = RPC.getServer(this, hostname, clientPort, 10, false, jobConf);
+    this.clientServer = RPC.getServer(this, hostname, clientPort, 10, false,
+        jobConf);
 
     amrmRPC = getYarnRPCConnection(localConf);
     registerApplicationMaster(amrmRPC, appAttemptId, hostname, clientPort, null);
@@ -221,7 +224,17 @@ public class BSPApplicationMaster implements BSPClient{
     FinishApplicationMasterRequest finishReq = Records
         .newRecord(FinishApplicationMasterRequest.class);
     finishReq.setAppAttemptId(appAttemptId);
-    finishReq.setFinalState(job.getState().toString());
+    switch (job.getState()) {
+      case SUCCESS:
+        finishReq.setFinishApplicationStatus(FinalApplicationStatus.SUCCEEDED);
+        break;
+      case KILLED:
+        finishReq.setFinishApplicationStatus(FinalApplicationStatus.KILLED);
+        break;
+      case FAILED:
+        finishReq.setFinishApplicationStatus(FinalApplicationStatus.FAILED);
+        break;
+    }
     this.amrmRPC.finishApplicationMaster(finishReq);
   }
 
@@ -287,6 +300,13 @@ public class BSPApplicationMaster implements BSPClient{
   @Override
   public LongWritable getCurrentSuperStep() {
     return syncServer.getSuperStep();
+  }
+
+  @Override
+  public ProtocolSignature getProtocolSignature(String protocol,
+      long clientVersion, int clientMethodsHash) throws IOException {
+    // TODO Auto-generated method stub
+    return new ProtocolSignature();
   }
 
 }
