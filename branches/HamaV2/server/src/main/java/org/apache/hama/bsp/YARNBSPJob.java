@@ -141,6 +141,7 @@ public class YARNBSPJob extends BSPJob {
     // the ApplicationMaster in the launched container
     Path jarPath = new Path(getWorkingDirectory(), id + "/app.jar");
     fs.copyFromLocalFile(this.getLocalPath(this.getJar()), jarPath);
+    LOG.info("Copying app jar to " + jarPath);
     conf.set("bsp.jar", jarPath.makeQualified(fs).toString());
     FileStatus jarStatus = fs.getFileStatus(jarPath);
     LocalResource amJarRsrc = Records.newRecord(LocalResource.class);
@@ -174,18 +175,21 @@ public class YARNBSPJob extends BSPJob {
     out.close();
 
     // Construct the command to be executed on the launched container
-    String command = "${JAVA_HOME}" + "/bin/java "
+    String command = "${JAVA_HOME}" + "/bin/java -cp " + classPathEnv + " "
         + BSPApplicationMaster.class.getCanonicalName() + " "
         + xmlPath.makeQualified(fs).toString() + " 1>"
         + ApplicationConstants.LOG_DIR_EXPANSION_VAR + "/stdout" + " 2>"
         + ApplicationConstants.LOG_DIR_EXPANSION_VAR + "/stderr";
+    
+    LOG.info("Start command: " + command);
 
     amContainer.setCommands(Collections.singletonList(command));
 
     Resource capability = Records.newRecord(Resource.class);
     // we have at least 3 threads, which comsumes 1mb each, for each bsptask and
-    // a base usage of 100mb
-    capability.setMemory(100 + 3 * this.getNumBspTask());
+    // a base usage of 250mb
+    // TODO this is too large
+    capability.setMemory(2048);
     LOG.info("Set memory for the application master to "
         + capability.getMemory() + "mb!");
     amContainer.setResource(capability);
@@ -205,6 +209,7 @@ public class YARNBSPJob extends BSPJob {
     GetApplicationReportResponse reportResponse = applicationsManager
         .getApplicationReport(reportRequest);
     report = reportResponse.getApplicationReport();
+    LOG.info("Got report: " + report.getApplicationId() + " " + report.getHost());
     submitted = true;
   }
 
