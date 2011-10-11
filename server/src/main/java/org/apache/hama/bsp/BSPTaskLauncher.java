@@ -115,7 +115,7 @@ public class BSPTaskLauncher implements Callable<BSPTaskStatus> {
 
     ctx.setCommands(Arrays.asList("${JAVA_HOME}" + "/bin/java -cp './package/*' ",
         BSPTaskLauncher.class.getCanonicalName(), jobId.getJtIdentifier(), id
-            + "", this.jobFile.makeQualified(FileSystem.get(conf)).toString(),
+            + "", this.jobFile.makeQualified(fs.getUri(), fs.getWorkingDirectory()).toString(),
         " 1>" + ApplicationConstants.LOG_DIR_EXPANSION_VAR + "/stdout", " 2>"
             + ApplicationConstants.LOG_DIR_EXPANSION_VAR + "/stderr"));
     ctx.setLocalResources(Collections.singletonMap("package", packageResource));
