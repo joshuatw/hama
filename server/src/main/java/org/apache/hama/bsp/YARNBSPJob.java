@@ -22,6 +22,7 @@ import java.net.InetSocketAddress;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.StringTokenizer;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -32,6 +33,7 @@ import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.ipc.RPC;
 import org.apache.hadoop.net.NetUtils;
+import org.apache.hadoop.util.Shell;
 import org.apache.hadoop.yarn.api.ApplicationConstants;
 import org.apache.hadoop.yarn.api.ClientRMProtocol;
 import org.apache.hadoop.yarn.api.protocolrecords.GetApplicationReportRequest;
@@ -101,6 +103,12 @@ public class YARNBSPJob extends BSPJob {
 
     if (fs == null) {
       fs = FileSystem.get(getConf());
+    }
+
+    if (conf.get("bsp.user.name") == null) {
+      String s = getUnixUserName();
+      conf.set("bsp.user.name", s);
+      LOG.info("Retrieved username: " + s);
     }
 
     YarnConfiguration yarnConf = new YarnConfiguration(conf);
@@ -249,6 +257,7 @@ public class YARNBSPJob extends BSPJob {
         && localReport.getFinalApplicationStatus() != FinalApplicationStatus.FAILED
         && localReport.getFinalApplicationStatus() != FinalApplicationStatus.KILLED
         && localReport.getFinalApplicationStatus() != FinalApplicationStatus.SUCCEEDED) {
+      LOG.info("currently in state: " + localReport.getFinalApplicationStatus());
       if (verbose) {
         long remoteSuperStep = client.getCurrentSuperStep().get();
         if (clientSuperStep > remoteSuperStep) {
@@ -274,6 +283,44 @@ public class YARNBSPJob extends BSPJob {
       return false;
     }
 
+  }
+
+  /*
+   * THESE FOLLOWING METHODS WILL BE IMPLEMENTED IN BSPJOBCLIENT SOON.
+   */
+
+  static String getUnixUserName() throws IOException {
+    String[] result = executeShellCommand(new String[] { Shell.USER_NAME_COMMAND });
+    if (result.length != 1) {
+      throw new IOException("Expect one token as the result of "
+          + Shell.USER_NAME_COMMAND + ": " + toString(result));
+    }
+    return result[0];
+  }
+
+  private static String toString(String[] strArray) {
+    if (strArray == null || strArray.length == 0) {
+      return "";
+    }
+    StringBuilder buf = new StringBuilder(strArray[0]);
+    for (int i = 1; i < strArray.length; i++) {
+      buf.append(' ');
+      buf.append(strArray[i]);
+    }
+    return buf.toString();
+  }
+
+  private static String[] executeShellCommand(String[] command)
+      throws IOException {
+    String groups = Shell.execCommand(command);
+    StringTokenizer tokenizer = new StringTokenizer(groups);
+    int numOfTokens = tokenizer.countTokens();
+    String[] tokens = new String[numOfTokens];
+    for (int i = 0; tokenizer.hasMoreTokens(); i++) {
+      tokens[i] = tokenizer.nextToken();
+    }
+
+    return tokens;
   }
 
 }

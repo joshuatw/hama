@@ -17,6 +17,7 @@
  */
 package org.apache.hama.bsp;
 
+import java.net.InetSocketAddress;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -31,7 +32,9 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.net.NetUtils;
 import org.apache.hadoop.yarn.api.AMRMProtocol;
+import org.apache.hadoop.yarn.api.ContainerManager;
 import org.apache.hadoop.yarn.api.protocolrecords.AllocateRequest;
 import org.apache.hadoop.yarn.api.protocolrecords.AllocateResponse;
 import org.apache.hadoop.yarn.api.records.AMResponse;
@@ -135,20 +138,34 @@ public class JobImpl implements Job {
   @Override
   public JobState startJob() throws YarnRemoteException, InterruptedException,
       ExecutionException {
-    
-    AllocateRequest req = BuilderUtils.newAllocateRequest(
-        appAttemptId, lastResponseID, 0.0f,createBSPTaskRequest(getTotalBSPTasks(),
-            taskMemoryInMb, priority), releasedContainers);
 
-    AllocateResponse allocateResponse = resourceManager.allocate(req);
-    AMResponse amResponse = allocateResponse.getAMResponse();
-    LOG.info("Got response! ID: " + amResponse.getResponseId()
-        + " with num of containers: "
-        + amResponse.getAllocatedContainers().size() + " and following resources: " + amResponse.getAvailableResources().getMemory()+ "mb");
-    this.lastResponseID = amResponse.getResponseId();
-    
-    this.availableResources = amResponse.getAvailableResources();
-    this.allocatedContainers = amResponse.getAllocatedContainers();
+    this.allocatedContainers = new ArrayList<Container>(numBSPTasks);
+    while (allocatedContainers.size() < numBSPTasks) {
+
+      AllocateRequest req = BuilderUtils.newAllocateRequest(
+          appAttemptId,
+          lastResponseID,
+          0.0f,
+          createBSPTaskRequest(numBSPTasks - allocatedContainers.size(),
+              taskMemoryInMb, priority), releasedContainers);
+
+      AllocateResponse allocateResponse = resourceManager.allocate(req);
+      AMResponse amResponse = allocateResponse.getAMResponse();
+      LOG.info("Got response! ID: " + amResponse.getResponseId()
+          + " with num of containers: "
+          + amResponse.getAllocatedContainers().size()
+          + " and following resources: "
+          + amResponse.getAvailableResources().getMemory() + "mb");
+      this.lastResponseID = amResponse.getResponseId();
+
+      this.availableResources = amResponse.getAvailableResources();
+      this.allocatedContainers.addAll(amResponse.getAllocatedContainers());
+      LOG.info("Waiting to allocate "
+          + (numBSPTasks - allocatedContainers.size()) + " more containers...");
+      Thread.sleep(1000l);
+    }
+
+    LOG.info("Got " + allocatedContainers.size() + " containers!");
 
     int launchedBSPTasks = 0;
 
@@ -162,8 +179,15 @@ public class JobImpl implements Job {
           + allocatedContainer.getState() + ", containerResourceMemory"
           + allocatedContainer.getResource().getMemory());
 
-      BSPTaskLauncher runnableLaunchContainer = new BSPTaskLauncher(jobId, id,
-          allocatedContainer, conf, yarnRPC, jobFile);
+      // Connect to ContainerManager on the allocated container
+      String cmIpPortStr = allocatedContainer.getNodeId().getHost() + ":"
+          + allocatedContainer.getNodeId().getPort();
+      InetSocketAddress cmAddress = NetUtils.createSocketAddr(cmIpPortStr);
+      ContainerManager cm = (ContainerManager) yarnRPC.getProxy(
+          ContainerManager.class, cmAddress, conf);
+
+      BSPTaskLauncher runnableLaunchContainer = new BSPTaskLauncher(id,
+          allocatedContainer, cm, conf, jobFile, jobId);
       launchers.put(id, runnableLaunchContainer);
       completionService.submit(runnableLaunchContainer);
       id++;
