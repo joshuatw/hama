@@ -212,9 +212,12 @@ public class YARNBSPJob extends BSPJob {
     GetApplicationReportRequest reportRequest = Records
         .newRecord(GetApplicationReportRequest.class);
     reportRequest.setApplicationId(id);
-    GetApplicationReportResponse reportResponse = applicationsManager
-        .getApplicationReport(reportRequest);
-    report = reportResponse.getApplicationReport();
+    while (report == null || report.getHost().equals("N/A")) {
+      GetApplicationReportResponse reportResponse = applicationsManager
+          .getApplicationReport(reportRequest);
+      report = reportResponse.getApplicationReport();
+      Thread.sleep(1000L);
+    }
     LOG.info("Got report: " + report.getApplicationId() + " "
         + report.getHost());
     submitted = true;
