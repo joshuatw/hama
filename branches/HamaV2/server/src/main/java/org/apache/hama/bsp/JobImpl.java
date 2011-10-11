@@ -17,6 +17,7 @@
  */
 package org.apache.hama.bsp;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -42,6 +43,7 @@ import org.apache.hadoop.yarn.api.records.Resource;
 import org.apache.hadoop.yarn.api.records.ResourceRequest;
 import org.apache.hadoop.yarn.exceptions.YarnRemoteException;
 import org.apache.hadoop.yarn.ipc.YarnRPC;
+import org.apache.hadoop.yarn.util.BuilderUtils;
 import org.apache.hadoop.yarn.util.Records;
 import org.apache.hama.bsp.BSPTaskLauncher.BSPTaskStatus;
 
@@ -74,6 +76,8 @@ public class JobImpl implements Job {
   private ExecutorCompletionService<BSPTaskStatus> completionService = new ExecutorCompletionService<BSPTaskStatus>(
       threadPool);
   private Map<Integer, BSPTaskLauncher> launchers = new HashMap<Integer, BSPTaskLauncher>();
+  private int lastResponseID = 0;
+  private Resource availableResources;
 
   public JobImpl(ApplicationAttemptId appAttemptId,
       Configuration jobConfiguration, YarnRPC yarnRPC, AMRMProtocol amrmRPC,
@@ -131,36 +135,20 @@ public class JobImpl implements Job {
   @Override
   public JobState startJob() throws YarnRemoteException, InterruptedException,
       ExecutionException {
-
-    ResourceRequest request = createBSPTaskRequest(getTotalBSPTasks(),
-        taskMemoryInMb, priority);
-
-    AllocateRequest req = Records.newRecord(AllocateRequest.class);
-    // response id zero because this is our initial allocation
-    req.setResponseId(0);
-    // set ApplicationAttemptId
-    req.setApplicationAttemptId(appAttemptId);
-    // add our task request
-    req.addAsk(request);
-    // always an empty list
-    req.addAllReleases(releasedContainers);
-    // we don't have a real progress, so it is always zero
-    req.setProgress(0);
+    
+    AllocateRequest req = BuilderUtils.newAllocateRequest(
+        appAttemptId, lastResponseID, 0.0f,createBSPTaskRequest(getTotalBSPTasks(),
+            taskMemoryInMb, priority), releasedContainers);
 
     AllocateResponse allocateResponse = resourceManager.allocate(req);
     AMResponse amResponse = allocateResponse.getAMResponse();
     LOG.info("Got response! ID: " + amResponse.getResponseId()
         + " with num of containers: "
-        + amResponse.getAllocatedContainers().size());
-    // somehow the response id is always incremented
-    if (amResponse.getResponseId() == 1) {
-      this.allocatedContainers = amResponse.getAllocatedContainers();
-    } else {
-      LOG.error("Response IDs somehow did not match. Got: "
-          + amResponse.getResponseId() + " where it should be 1 (one).");
-      state = JobState.FAILED;
-      return state;
-    }
+        + amResponse.getAllocatedContainers().size() + " and following resources: " + amResponse.getAvailableResources().getMemory()+ "mb");
+    this.lastResponseID = amResponse.getResponseId();
+    
+    this.availableResources = amResponse.getAvailableResources();
+    this.allocatedContainers = amResponse.getAllocatedContainers();
 
     int launchedBSPTasks = 0;
 
@@ -220,32 +208,37 @@ public class JobImpl implements Job {
     threadPool.shutdownNow();
   }
 
-  private ResourceRequest createBSPTaskRequest(int numBSPTasks, int memoryInMb,
-      int priority) {
-    // Resource Request
-    ResourceRequest rsrcRequest = Records.newRecord(ResourceRequest.class);
+  private List<ResourceRequest> createBSPTaskRequest(int numTasks,
+      int memoryInMb, int priority) {
 
-    // setup requirements for hosts
-    // whether a particular rack/host is needed
-    // useful for applications that are sensitive
-    // to data locality
-    rsrcRequest.setHostName("*");
+    List<ResourceRequest> reqList = new ArrayList<ResourceRequest>(numTasks);
+    for (int i = 0; i < numTasks; i++) {
+      // Resource Request
+      ResourceRequest rsrcRequest = Records.newRecord(ResourceRequest.class);
 
-    // set the priority for the request
-    Priority pri = Records.newRecord(Priority.class);
-    pri.setPriority(priority);
-    rsrcRequest.setPriority(pri);
+      // setup requirements for hosts
+      // whether a particular rack/host is needed
+      // useful for applications that are sensitive
+      // to data locality
+      rsrcRequest.setHostName("*");
 
-    // Set up resource type requirements
-    // For now, only memory is supported so we set memory requirements
-    Resource capability = Records.newRecord(Resource.class);
-    capability.setMemory(memoryInMb);
-    rsrcRequest.setCapability(capability);
+      // set the priority for the request
+      Priority pri = Records.newRecord(Priority.class);
+      pri.setPriority(priority);
+      rsrcRequest.setPriority(pri);
 
-    // set no. of containers needed
-    // matching the specifications
-    rsrcRequest.setNumContainers(numBSPTasks);
-    return rsrcRequest;
+      // Set up resource type requirements
+      // For now, only memory is supported so we set memory requirements
+      Resource capability = Records.newRecord(Resource.class);
+      capability.setMemory(memoryInMb);
+      rsrcRequest.setCapability(capability);
+
+      // set no. of containers needed
+      // matching the specifications
+      rsrcRequest.setNumContainers(numBSPTasks);
+      reqList.add(rsrcRequest);
+    }
+    return reqList;
   }
 
   @Override
