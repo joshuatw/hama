@@ -17,7 +17,7 @@
  */
 package org.apache.hama.bsp;
 
-import java.net.InetSocketAddress;
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.concurrent.Callable;
@@ -28,7 +28,6 @@ import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
-import org.apache.hadoop.net.NetUtils;
 import org.apache.hadoop.yarn.api.ApplicationConstants;
 import org.apache.hadoop.yarn.api.ContainerManager;
 import org.apache.hadoop.yarn.api.protocolrecords.GetContainerStatusRequest;
@@ -37,12 +36,12 @@ import org.apache.hadoop.yarn.api.protocolrecords.StopContainerRequest;
 import org.apache.hadoop.yarn.api.records.Container;
 import org.apache.hadoop.yarn.api.records.ContainerLaunchContext;
 import org.apache.hadoop.yarn.api.records.ContainerState;
+import org.apache.hadoop.yarn.api.records.ContainerStatus;
 import org.apache.hadoop.yarn.api.records.LocalResource;
 import org.apache.hadoop.yarn.api.records.LocalResourceType;
 import org.apache.hadoop.yarn.api.records.LocalResourceVisibility;
 import org.apache.hadoop.yarn.api.records.URL;
 import org.apache.hadoop.yarn.exceptions.YarnRemoteException;
-import org.apache.hadoop.yarn.ipc.YarnRPC;
 import org.apache.hadoop.yarn.util.ConverterUtils;
 import org.apache.hadoop.yarn.util.Records;
 import org.apache.hama.bsp.BSPTaskLauncher.BSPTaskStatus;
@@ -52,30 +51,23 @@ public class BSPTaskLauncher implements Callable<BSPTaskStatus> {
   private static final Log LOG = LogFactory.getLog(BSPTaskLauncher.class);
 
   private final Container allocatedContainer;
-  private final ContainerManager cm;
-  private final Path jobFile;
-  private final String user;
-  private final Configuration conf;
   private final int id;
+  private final ContainerManager cm;
+  private final Configuration conf;
+  private final String user;
+  private final Path jobFile;
   private final BSPJobID jobId;
 
-  public BSPTaskLauncher(BSPJobID jobId, int id, Container container,
-      Configuration conf, YarnRPC rpc, Path jobFile) throws YarnRemoteException {
+  public BSPTaskLauncher(int id, Container container, ContainerManager cm,
+      Configuration conf, Path jobFile, BSPJobID jobId)
+      throws YarnRemoteException {
     this.id = id;
-    this.jobFile = jobFile;
-    this.user = conf.get("user.name");
+    this.cm = cm;
     this.conf = conf;
-    this.jobId = jobId;
     this.allocatedContainer = container;
-    // Connect to ContainerManager on the allocated container
-    String cmIpPortStr = container.getNodeId().getHost() + ":"
-        + container.getNodeId().getPort();
-    InetSocketAddress cmAddress = NetUtils.createSocketAddr(cmIpPortStr);
-    cm = (ContainerManager) rpc.getProxy(ContainerManager.class, cmAddress,
-        conf);
-    LOG.info("Spawned task with id: " + this.id
-        + " for allocated container id: "
-        + this.allocatedContainer.getId().toString());
+    this.jobFile = jobFile;
+    this.jobId = jobId;
+    this.user = conf.get("bsp.user.name");
   }
 
   @Override
@@ -92,6 +84,25 @@ public class BSPTaskLauncher implements Callable<BSPTaskStatus> {
 
   @Override
   public BSPTaskStatus call() throws Exception {
+    LOG.info("Spawned task with id: " + this.id
+        + " for allocated container id: "
+        + this.allocatedContainer.getId().toString());
+    final GetContainerStatusRequest statusRequest = setupContainer(allocatedContainer, cm, user, id);
+
+    ContainerStatus lastStatus;
+    while ((lastStatus = cm.getContainerStatus(statusRequest).getStatus())
+        .getState() != ContainerState.COMPLETE) {
+      Thread.sleep(1000l);
+    }
+
+    return new BSPTaskStatus(id, lastStatus.getExitStatus());
+  }
+
+  private GetContainerStatusRequest setupContainer(
+      Container allocatedContainer, ContainerManager cm, String user, int id)
+      throws IOException {
+    LOG.info("Setting up a container for user " + user + " with id of " + id
+        + " and containerID of " + allocatedContainer.getId());
     // Now we setup a ContainerLaunchContext
     ContainerLaunchContext ctx = Records
         .newRecord(ContainerLaunchContext.class);
@@ -113,11 +124,12 @@ public class BSPTaskLauncher implements Callable<BSPTaskStatus> {
     packageResource.setType(LocalResourceType.ARCHIVE);
     packageResource.setVisibility(LocalResourceVisibility.APPLICATION);
 
-    ctx.setCommands(Arrays.asList("${JAVA_HOME}" + "/bin/java -cp './package/*' ",
-        BSPTaskLauncher.class.getCanonicalName(), jobId.getJtIdentifier(), id
-            + "", this.jobFile.makeQualified(fs.getUri(), fs.getWorkingDirectory()).toString(),
-        " 1>" + ApplicationConstants.LOG_DIR_EXPANSION_VAR + "/stdout", " 2>"
-            + ApplicationConstants.LOG_DIR_EXPANSION_VAR + "/stderr"));
+    ctx.setCommands(Arrays.asList("${JAVA_HOME}"
+        + "/bin/java -cp './package/*' ", BSPTaskLauncher.class
+        .getCanonicalName(), jobId.getJtIdentifier(), id + "", this.jobFile
+        .makeQualified(fs.getUri(), fs.getWorkingDirectory()).toString(), " 1>"
+        + ApplicationConstants.LOG_DIR_EXPANSION_VAR + "/stdout", " 2>"
+        + ApplicationConstants.LOG_DIR_EXPANSION_VAR + "/stderr"));
     ctx.setLocalResources(Collections.singletonMap("package", packageResource));
 
     StartContainerRequest startReq = Records
@@ -128,13 +140,7 @@ public class BSPTaskLauncher implements Callable<BSPTaskStatus> {
     GetContainerStatusRequest statusReq = Records
         .newRecord(GetContainerStatusRequest.class);
     statusReq.setContainerId(allocatedContainer.getId());
-
-    while (cm.getContainerStatus(statusReq).getStatus().getState() != ContainerState.COMPLETE) {
-      Thread.sleep(1000l);
-    }
-
-    return new BSPTaskStatus(id, cm.getContainerStatus(statusReq).getStatus()
-        .getExitStatus());
+    return statusReq;
   }
 
   public static class BSPTaskStatus {
