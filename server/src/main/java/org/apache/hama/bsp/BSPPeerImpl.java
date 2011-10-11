@@ -42,6 +42,7 @@ import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.io.Writable;
+import org.apache.hadoop.ipc.ProtocolSignature;
 import org.apache.hadoop.ipc.RPC;
 import org.apache.hadoop.ipc.RPC.Server;
 import org.apache.hama.Constants;
@@ -470,5 +471,12 @@ public class BSPPeerImpl implements BSPPeer {
    */
   public void clearOutgoingQueues() {
     this.outgoingQueues.clear();
+  }
+
+  @Override
+  public ProtocolSignature getProtocolSignature(String protocol,
+      long clientVersion, int clientMethodsHash) throws IOException {
+    // TODO Auto-generated method stub
+    return new ProtocolSignature();
   }
 }
