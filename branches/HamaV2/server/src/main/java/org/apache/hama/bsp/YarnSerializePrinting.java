@@ -36,7 +36,7 @@ public class YarnSerializePrinting {
     @Override
     public void bsp(BSPPeer bspPeer) throws IOException, KeeperException,
         InterruptedException {
-
+      num = conf.getInt("bsp.peers.num", 0);
       LOG.info(bspPeer.getAllPeerNames());
       int i = 0;
       for (String otherPeer : bspPeer.getAllPeerNames()) {
