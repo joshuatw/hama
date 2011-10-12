@@ -87,7 +87,8 @@ public class BSPTaskLauncher implements Callable<BSPTaskStatus> {
     LOG.info("Spawned task with id: " + this.id
         + " for allocated container id: "
         + this.allocatedContainer.getId().toString());
-    final GetContainerStatusRequest statusRequest = setupContainer(allocatedContainer, cm, user, id);
+    final GetContainerStatusRequest statusRequest = setupContainer(
+        allocatedContainer, cm, user, id);
 
     ContainerStatus lastStatus;
     while ((lastStatus = cm.getContainerStatus(statusRequest).getStatus())
@@ -111,11 +112,13 @@ public class BSPTaskLauncher implements Callable<BSPTaskStatus> {
     ctx.setResource(allocatedContainer.getResource());
     ctx.setUser(user);
 
+    /*
+     * jar
+     */
     LocalResource packageResource = Records.newRecord(LocalResource.class);
     FileSystem fs = FileSystem.get(conf);
     Path packageFile = new Path(conf.get("bsp.jar"));
-    URL packageUrl = ConverterUtils.getYarnUrlFromPath(new Path(conf
-        .get("bsp.jar")));
+    URL packageUrl = ConverterUtils.getYarnUrlFromPath(packageFile);
 
     FileStatus fileStatus = fs.getFileStatus(packageFile);
     packageResource.setResource(packageUrl);
@@ -123,14 +126,33 @@ public class BSPTaskLauncher implements Callable<BSPTaskStatus> {
     packageResource.setTimestamp(fileStatus.getModificationTime());
     packageResource.setType(LocalResourceType.ARCHIVE);
     packageResource.setVisibility(LocalResourceVisibility.APPLICATION);
+    LOG.info("Package resource: " + packageResource.getResource());
 
-    ctx.setCommands(Arrays.asList("${JAVA_HOME}"
-        + "/bin/java -cp './package/*' ", BSPTaskLauncher.class
-        .getCanonicalName(), jobId.getJtIdentifier(), id + "", this.jobFile
-        .makeQualified(fs.getUri(), fs.getWorkingDirectory()).toString(), " 1>"
-        + ApplicationConstants.LOG_DIR_EXPANSION_VAR + "/stdout", " 2>"
-        + ApplicationConstants.LOG_DIR_EXPANSION_VAR + "/stderr"));
     ctx.setLocalResources(Collections.singletonMap("package", packageResource));
+    
+    /*
+     * TODO Package classpath seems not to work if you're in pseudo distributed
+     * mode, because the resource must not be moved, it will never be unpacked.
+     * So we will check if our jar file has the file:// prefix and put it into
+     * the CP directly
+     */
+    String cp = "$CLASSPATH:./*:./package/*:./*:";
+    if (packageUrl.getScheme() != null && packageUrl.getScheme().equals("file")) {
+      cp += packageFile.makeQualified(fs.getUri(), fs.getWorkingDirectory())
+          .toString() + ":";
+      LOG.info("Localized file scheme detected, adjusting CP to: " + cp);
+    }
+    String[] cmds = {
+        "${JAVA_HOME}" + "/bin/java -cp '" + cp + "' "
+            + BSPRunner.class.getCanonicalName(),
+        jobId.getJtIdentifier(),
+        id + "",
+        this.jobFile.makeQualified(fs.getUri(), fs.getWorkingDirectory())
+            .toString(),
+        " 1>" + ApplicationConstants.LOG_DIR_EXPANSION_VAR + "/stdout",
+        " 2>" + ApplicationConstants.LOG_DIR_EXPANSION_VAR + "/stderr" };
+    ctx.setCommands(Arrays.asList(cmds));
+    LOG.info("Starting command: " + Arrays.toString(cmds));
 
     StartContainerRequest startReq = Records
         .newRecord(StartContainerRequest.class);
