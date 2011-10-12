@@ -28,6 +28,8 @@ import java.util.concurrent.Future;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.fs.FSDataOutputStream;
+import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.ipc.ProtocolSignature;
@@ -117,6 +119,12 @@ public class BSPApplicationMaster implements BSPClient {
     this.clientServer = RPC.getServer(this, hostname, clientPort, 10, false,
         jobConf);
 
+    /*
+     * Make sure that this executes after the start of the sync server, because
+     * we are readjusting the configuration.
+     */
+    rewriteSubmitConfiguration(jobFile, jobConf);
+
     amrmRPC = getYarnRPCConnection(localConf);
     registerApplicationMaster(amrmRPC, appAttemptId, hostname, clientPort, null);
   }
@@ -139,7 +147,7 @@ public class BSPApplicationMaster implements BSPClient {
     LOG.info("Waiting for the Sync Master at " + syncAddress);
     RPC.waitForProxy(SyncServer.class, SyncServer.versionID, syncAddress,
         jobConf);
-    jobConf.set("bsp.sync.server.address", hostname + ":" + syncPort);
+    jobConf.set("hama.sync.server.address", hostname + ":" + syncPort);
   }
 
   /**
@@ -237,6 +245,8 @@ public class BSPApplicationMaster implements BSPClient {
       case FAILED:
         finishReq.setFinishApplicationStatus(FinalApplicationStatus.FAILED);
         break;
+      default:
+        finishReq.setFinishApplicationStatus(FinalApplicationStatus.FAILED);
     }
     this.amrmRPC.finishApplicationMaster(finishReq);
   }
@@ -250,7 +260,6 @@ public class BSPApplicationMaster implements BSPClient {
       master.start();
     } catch (Exception e) {
       LOG.fatal("Error starting BSPApplicationMaster", e);
-      System.exit(1);
     } finally {
       if (master != null) {
         master.cleanup();
@@ -270,6 +279,23 @@ public class BSPApplicationMaster implements BSPClient {
     Configuration jobConf = new HamaConfiguration();
     jobConf.addResource(jobSubmitPath);
     return jobConf;
+  }
+
+  /**
+   * Writes the current configuration to a given path to reflect changes. For
+   * example the sync server address is put after the file has been written.
+   * TODO this should upload to HDFS to a given path as well.
+   * 
+   * @throws IOException
+   */
+  private void rewriteSubmitConfiguration(String path, Configuration conf)
+      throws IOException {
+    Path jobSubmitPath = new Path(path);
+    FileSystem fs = FileSystem.get(conf);
+    FSDataOutputStream out = fs.create(jobSubmitPath);
+    conf.writeXml(out);
+    out.close();
+    LOG.info("Written new configuration back to " + path);
   }
 
   /**
