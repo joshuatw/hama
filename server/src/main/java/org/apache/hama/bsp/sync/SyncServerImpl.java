@@ -30,7 +30,6 @@ import java.util.concurrent.CyclicBarrier;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.io.ArrayWritable;
 import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.ipc.ProtocolSignature;
@@ -196,10 +195,9 @@ public class SyncServerImpl implements SyncServer, Callable<Long> {
   }
 
   @Override
-  public synchronized ArrayWritable getAllPeerNames() {
-    ArrayWritable writable = new ArrayWritable(
+  public synchronized StringArrayWritable getAllPeerNames() {
+    return new StringArrayWritable(
         peerAddresses.toArray(new String[peerAddresses.size()]));
-    return writable;
   }
 
   @Override

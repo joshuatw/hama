@@ -72,8 +72,8 @@ public class YarnSerializePrinting {
     job.setBspClass(HelloBSP.class);
     job.setJarByClass(HelloBSP.class);
     job.setJobName("Serialize Printing");
-    job.setMemoryUsedPerTaskInMb(512);
-    job.setNumBspTask(3);
+    job.setMemoryUsedPerTaskInMb(2048);
+    job.setNumBspTask(2);
     // TODO true throws exceptions
     job.waitForCompletion(false);
   }

@@ -205,6 +205,7 @@ public class BSPPeerImpl implements BSPPeer {
     syncService = SyncServerImpl.getService(conf);
     syncService.register(taskid, new Text(peerAddress.getHostName()),
         new LongWritable(peerAddress.getPort()));
+    currentTaskStatus = new TaskStatus();
   }
 
   public void reinitialize() {
@@ -412,7 +413,7 @@ public class BSPPeerImpl implements BSPPeer {
 
   @Override
   public String[] getAllPeerNames() {
-    return syncService.getAllPeerNames().toStrings();
+    return syncService.getAllPeerNames().get();
   }
 
   /**
