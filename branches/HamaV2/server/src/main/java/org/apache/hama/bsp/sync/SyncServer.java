@@ -17,7 +17,6 @@
  */
 package org.apache.hama.bsp.sync;
 
-import org.apache.hadoop.io.ArrayWritable;
 import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.ipc.VersionedProtocol;
@@ -29,7 +28,7 @@ import org.apache.hama.bsp.TaskAttemptID;
  */
 public interface SyncServer extends VersionedProtocol {
 
-  public static final long versionID = 1L;
+  public static final long versionID = 0L;
 
   public void enterBarrier(TaskAttemptID id);
 
@@ -39,7 +38,7 @@ public interface SyncServer extends VersionedProtocol {
 
   public LongWritable getSuperStep();
 
-  public ArrayWritable getAllPeerNames();
+  public StringArrayWritable getAllPeerNames();
 
   public void deregisterFromBarrier(TaskAttemptID id, Text hostAddress,
       LongWritable port);

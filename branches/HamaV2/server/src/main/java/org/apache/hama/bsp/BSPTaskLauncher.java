@@ -143,7 +143,7 @@ public class BSPTaskLauncher implements Callable<BSPTaskStatus> {
       LOG.info("Localized file scheme detected, adjusting CP to: " + cp);
     }
     String[] cmds = {
-        "${JAVA_HOME}" + "/bin/java -cp '" + cp + "' "
+        "${JAVA_HOME}" + "/bin/java -cp \"" + cp + "\" "
             + BSPRunner.class.getCanonicalName(),
         jobId.getJtIdentifier(),
         id + "",

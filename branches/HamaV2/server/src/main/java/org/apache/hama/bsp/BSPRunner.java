@@ -77,6 +77,7 @@ public class BSPRunner {
   public static void main(String[] args) throws NumberFormatException,
       IOException, ClassNotFoundException, KeeperException,
       InterruptedException {
+    LOG.info("Starting task with arguments: " + Arrays.toString(args));
     if (args.length != 3) {
       throw new IllegalArgumentException("Expected 3 args given, but found: "
           + Arrays.toString(args));
