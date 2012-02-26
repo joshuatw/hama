@@ -19,13 +19,15 @@ package org.apache.hama.bsp.message;
 
 import org.apache.hadoop.io.Writable;
 import org.apache.hama.bsp.BSPMessageBundle;
+import org.apache.hama.bsp.message.compress.BSPCompressedBundle;
 import org.apache.hama.ipc.HamaRPCProtocolVersion;
 
 /**
  * Hadoop RPC Interface for messaging.
  * 
  */
-public interface HadoopMessageManager<M extends Writable> extends HamaRPCProtocolVersion {
+public interface HadoopMessageManager<M extends Writable> extends
+    HamaRPCProtocolVersion {
 
   /**
    * This method puts a message for the next iteration. Accessed concurrently
@@ -42,5 +44,13 @@ public interface HadoopMessageManager<M extends Writable> extends HamaRPCProtoco
    * @param messages
    */
   public void put(BSPMessageBundle<M> messages);
+
+  /**
+   * This method puts a compressed message bundle for the next iteration.
+   * Accessed concurrently from protocol, this must be sychronized internally.
+   * 
+   * @param compMsgBundle
+   */
+  public void put(BSPCompressedBundle compMsgBundle);
 
 }

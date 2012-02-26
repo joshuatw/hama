@@ -101,6 +101,16 @@
   <dependencyManagement>
     <dependencies>
       <dependency>
+	<groupId>org.xerial.snappy</groupId>
+	<artifactId>snappy-java</artifactId>
+	<version>1.0.4.1</version>
+      </dependency>
+      <dependency>
+        <groupId>com.google.guava</groupId>
+        <artifactId>guava</artifactId>
+        <version>10.0.1</version> 
+      </dependency>    
+      <dependency>
         <groupId>commons-logging</groupId>
         <artifactId>commons-logging</artifactId>
         <version>${commons-logging.version}</version>
@@ -272,6 +282,43 @@
         <configuration>
           <mavenExecutorId>forked-path</mavenExecutorId>
         </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.rat</groupId>
+        <artifactId>apache-rat-plugin</artifactId>
+        <version>0.8</version>
+        <executions>
+          <execution>
+            <phase>package</phase>
+            <goals>
+              <goal>check</goal>
+            </goals>
+          </execution>
+        </executions>
+        <configuration>
+          <excludes>
+            <exclude>**/*.asc</exclude>
+            <exclude>**/logs/**</exclude>
+            <exclude>CHANGES.txt</exclude>
+            <exclude>conf/groomservers</exclude>
+            <exclude>src/site/resources/files/hama-eclipse-formatter.xml</exclude>
+            <exclude>**/src/test/resources/*.properties</exclude>
+            <exclude>**dependency-reduced-pom.xml</exclude>
+          </excludes>
+        </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-gpg-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>sign-artifacts</id>
+            <phase>deploy</phase>
+            <goals>
+              <goal>sign</goal>
+            </goals>
+          </execution>
+        </executions>
       </plugin>
     </plugins>
   </build>

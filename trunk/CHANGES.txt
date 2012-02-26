@@ -4,6 +4,7 @@ Release 0.5 - Unreleased
 
   NEW FEATURES
 
+   HAMA-367: Runtime Compression of BSP Messages to Improve the Performance (Apurv Verma via tjungblut)
    HAMA-501: Add Avro RPC (tjungblut)
    HAMA-456: Add basic Graph interfaces and GraphJobRunner (edwardyoon)
 
@@ -11,6 +12,10 @@ Release 0.5 - Unreleased
 
   IMPROVEMENTS
 
+    HAMA-484: Counters should be accessible in client (tjungblut)    
+    HAMA-483: Remove old and deprecated BSP API (tjungblut)    
+    HAMA-514: Add maven-gpg-plugin to parent POM file (edwardyoon)
+    HAMA-510: Add sendMessageToNeighbors() to Vertex (tjungblut)
     HAMA-502: Message API Improvement (edwardyoon)
   
 Release 0.4 - February 5, 2012

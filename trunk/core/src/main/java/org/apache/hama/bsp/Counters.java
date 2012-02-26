@@ -1,3 +1,20 @@
+/**
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package org.apache.hama.bsp;
 
 import java.io.DataInput;
@@ -393,7 +410,7 @@ public class Counters implements Writable, Iterable<Counters.Group> {
    * A cache from enum values to the associated counter. Dramatically speeds up
    * typical usage.
    */
-  private Map<Enum, Counter> cache = new IdentityHashMap<Enum, Counter>();
+  private Map<Enum<?>, Counter> cache = new IdentityHashMap<Enum<?>, Counter>();
 
   /**
    * Returns the names of all counter classes.
@@ -428,7 +445,7 @@ public class Counters implements Writable, Iterable<Counters.Group> {
    * @param key the counter key
    * @return the matching counter object
    */
-  public synchronized Counter findCounter(Enum key) {
+  public synchronized Counter findCounter(Enum<?> key) {
     Counter counter = cache.get(key);
     if (counter == null) {
       Group group = getGroup(key.getDeclaringClass().getName());
@@ -470,7 +487,7 @@ public class Counters implements Writable, Iterable<Counters.Group> {
    * @param key identifies a counter
    * @param amount amount by which counter is to be incremented
    */
-  public synchronized void incrCounter(Enum key, long amount) {
+  public synchronized void incrCounter(Enum<?> key, long amount) {
     findCounter(key).increment(amount);
   }
 
@@ -490,7 +507,7 @@ public class Counters implements Writable, Iterable<Counters.Group> {
    * Returns current value of the specified counter, or 0 if the counter does
    * not exist.
    */
-  public synchronized long getCounter(Enum key) {
+  public synchronized long getCounter(Enum<?> key) {
     return findCounter(key).getValue();
   }
 

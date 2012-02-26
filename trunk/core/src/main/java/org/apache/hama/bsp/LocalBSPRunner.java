@@ -66,7 +66,7 @@ public class LocalBSPRunner implements JobSubmissionProtocol {
   private volatile ThreadPoolExecutor threadPool;
 
   @SuppressWarnings("rawtypes")
-  protected static final LinkedList<Future<BSP>> futureList = new LinkedList<Future<BSP>>();
+  protected static final LinkedList<Future<BSPPeerImpl>> futureList = new LinkedList<Future<BSPPeerImpl>>();
 
   protected String jobFile;
   protected String jobName;
@@ -78,6 +78,7 @@ public class LocalBSPRunner implements JobSubmissionProtocol {
 
   private static volatile long superStepCount = 0L;
   private static String[] peerNames;
+  private final Counters globalCounters = new Counters();
 
   // this is used for not-input driven job
   private int maxTasks;
@@ -126,7 +127,7 @@ public class LocalBSPRunner implements JobSubmissionProtocol {
 
     BSPJob job = new BSPJob(new HamaConfiguration(conf), jobID);
     currentJobStatus = new JobStatus(jobID, System.getProperty("user.name"),
-        0L, JobStatus.RUNNING);
+        0L, JobStatus.RUNNING, globalCounters);
 
     int numBspTask = job.getNumBspTask();
 
@@ -143,7 +144,7 @@ public class LocalBSPRunner implements JobSubmissionProtocol {
         splitFile.close();
       }
     }
-    
+
     threadPool = (ThreadPoolExecutor) Executors.newFixedThreadPool(numBspTask);
 
     peerNames = new String[numBspTask];
@@ -151,6 +152,7 @@ public class LocalBSPRunner implements JobSubmissionProtocol {
       peerNames[i] = "local:" + i;
       futureList.add(threadPool.submit(new BSPRunner(new Configuration(conf),
           job, i, splits)));
+      globalCounters.incrCounter(JobInProgress.JobCounter.LAUNCHED_TASKS, 1L);
     }
 
     new Thread(new ThreadObserver(currentJobStatus)).start();
@@ -171,7 +173,7 @@ public class LocalBSPRunner implements JobSubmissionProtocol {
   @Override
   public JobStatus getJobStatus(BSPJobID jobid) throws IOException {
     currentJobStatus.setSuperstepCount(superStepCount);
-    currentJobStatus.setprogress(superStepCount);
+    currentJobStatus.setProgress(superStepCount);
     return currentJobStatus;
   }
 
@@ -207,14 +209,15 @@ public class LocalBSPRunner implements JobSubmissionProtocol {
   }
 
   // this class will spawn a new thread and executes the BSP
-  @SuppressWarnings({ "deprecation", "rawtypes" })
-  static class BSPRunner implements Callable<BSP> {
+  @SuppressWarnings({ "rawtypes" })
+  static class BSPRunner implements Callable<BSPPeerImpl> {
 
     private Configuration conf;
     private BSPJob job;
     private int id;
     private BSP bsp;
     private RawSplit[] splits;
+    private BSPPeerImpl peer;
 
     public BSPRunner(Configuration conf, BSPJob job, int id, RawSplit[] splits) {
       super();
@@ -243,11 +246,9 @@ public class LocalBSPRunner implements JobSubmissionProtocol {
         realBytes = splits[id].getBytes();
       }
 
-      BSPPeerImpl peer = new BSPPeerImpl(job, conf, new TaskAttemptID(
+      peer = new BSPPeerImpl(job, conf, new TaskAttemptID(
           new TaskID(job.getJobID(), id), id), new LocalUmbilical(), id,
           splitname, realBytes, new Counters());
-
-      bsp.setConf(conf);
       try {
         bsp.setup(peer);
         bsp.bsp(peer);
@@ -260,9 +261,9 @@ public class LocalBSPRunner implements JobSubmissionProtocol {
     }
 
     @Override
-    public BSP call() throws Exception {
+    public BSPPeerImpl call() throws Exception {
       run();
-      return bsp;
+      return peer;
     }
   }
 
@@ -275,13 +276,15 @@ public class LocalBSPRunner implements JobSubmissionProtocol {
       this.status = currentJobStatus;
     }
 
+    @SuppressWarnings("rawtypes")
     @Override
     public void run() {
       boolean success = true;
-      for (@SuppressWarnings("rawtypes")
-      Future<BSP> future : futureList) {
+      for (Future<BSPPeerImpl> future : futureList) {
         try {
-          future.get();
+          BSPPeerImpl bspPeerImpl = future.get();
+          currentJobStatus.getCounter().incrAllCounters(
+              bspPeerImpl.getCounters());
         } catch (InterruptedException e) {
           LOG.error("Exception during BSP execution!", e);
           success = false;
@@ -302,8 +305,10 @@ public class LocalBSPRunner implements JobSubmissionProtocol {
 
   }
 
-  public static class LocalMessageManager<M extends Writable> implements MessageManager<M> {
+  public static class LocalMessageManager<M extends Writable> implements
+      MessageManager<M> {
 
+    @SuppressWarnings("rawtypes")
     private static final ConcurrentHashMap<InetSocketAddress, LocalMessageManager> managerMap = new ConcurrentHashMap<InetSocketAddress, LocalBSPRunner.LocalMessageManager>();
 
     private final HashMap<InetSocketAddress, LinkedList<M>> localOutgoingMessages = new HashMap<InetSocketAddress, LinkedList<M>>();
@@ -336,8 +341,7 @@ public class LocalBSPRunner implements JobSubmissionProtocol {
         inetSocketAddress = BSPNetUtils.getAddress(peerName);
         socketCache.put(peerName, inetSocketAddress);
       }
-      LinkedList<M> msgs = localOutgoingMessages
-          .get(inetSocketAddress);
+      LinkedList<M> msgs = localOutgoingMessages.get(inetSocketAddress);
       if (msgs == null) {
         msgs = new LinkedList<M>();
       }
@@ -346,6 +350,7 @@ public class LocalBSPRunner implements JobSubmissionProtocol {
       localOutgoingMessages.put(inetSocketAddress, msgs);
     }
 
+    @SuppressWarnings("unchecked")
     @Override
     public void transfer(InetSocketAddress addr, BSPMessageBundle<M> bundle)
         throws IOException {
@@ -358,7 +363,7 @@ public class LocalBSPRunner implements JobSubmissionProtocol {
     public Iterator<Entry<InetSocketAddress, LinkedList<M>>> getMessageIterator() {
       return localOutgoingMessages.entrySet().iterator();
     }
-    
+
     @Override
     public void clearOutgoingQueues() {
       localOutgoingMessages.clear();
